@@ -1,0 +1,16 @@
+# Common slim ignore rules
+.idea/
+.vscode/
+/coverage/
+/vendor/
+/logs/*
+!/logs/README.md
+.phpunit.result.cache
+# Own project ignore rules
+.env
+Config.php
+public/resources/bootstrap/
+/docs/
+/storage/
+liquibase.properties
+/liquibase/mysql/docs/
