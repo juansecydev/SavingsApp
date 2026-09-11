@@ -6,25 +6,24 @@ use App\Application\Settings\SettingsInterface;
 use Psr\Container\ContainerInterface;
 
 return function (ContainerInterface $container): void {
-    
     $settings = $container->get(SettingsInterface::class);
-    $config = $settings->get('config');
 
     define('APP_ROOT_PATH', dirname(__DIR__) . '/');
     define('APP_PUBLIC_PATH', APP_ROOT_PATH . 'public/');
     define('APP_LOG_PATH', APP_ROOT_PATH . 'logs/');
-    define('STORAGE_PATH', $config['storage_path'] );
+    define('STORAGE_PATH', $settings->get('storage_path') ?? (APP_ROOT_PATH . 'storage/'));
+    define('TEMPLATES_PATH', APP_ROOT_PATH . 'templates/');
 
     if (!is_dir(APP_LOG_PATH)) {
         mkdir(APP_LOG_PATH, 0755, true);
     }
 
-    date_default_timezone_set($config['time_zone']);
+    date_default_timezone_set($settings->get('time_zone') ?? 'UTC');
 
-    define('APP_NAME', $config['app_name']);
+    define('APP_NAME', $settings->get('app_name') ?? 'SavingsApp');
     define('APP_ERROR_LOG', APP_LOG_PATH . 'php-error.log');
 
-    if ($config['production']) {
+    if ((bool) ($settings->get('displayErrorDetails') ?? false)) {
         ini_set('display_errors', '0');
         ini_set('display_startup_errors', '0');
         ini_set('html_errors', '0');
