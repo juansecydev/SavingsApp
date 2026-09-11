@@ -7,6 +7,7 @@ use App\Application\Handlers\ShutdownHandler;
 use App\Application\ResponseEmitter\ResponseEmitter;
 use App\Application\Settings\SettingsInterface;
 use DI\ContainerBuilder;
+use Psr\Log\LoggerInterface;
 use Slim\Factory\AppFactory;
 use Slim\Factory\ServerRequestCreatorFactory;
 
@@ -54,7 +55,6 @@ $routes($app);
 
 /** @var SettingsInterface $settings */
 $settings = $container->get(SettingsInterface::class);
-
 $displayErrorDetails = $settings->get('displayErrorDetails');
 $logError = $settings->get('logError');
 $logErrorDetails = $settings->get('logErrorDetails');
@@ -77,9 +77,14 @@ $app->addRoutingMiddleware();
 // Add Body Parsing Middleware
 $app->addBodyParsingMiddleware();
 
+$logger = $app->getContainer()->get(LoggerInterface::class);
+
 // Add Error Middleware
-$errorMiddleware = $app->addErrorMiddleware($displayErrorDetails, $logError, $logErrorDetails);
-$errorMiddleware->setDefaultErrorHandler($errorHandler);
+$errorMiddleware = $app->addErrorMiddleware($displayErrorDetails, $logError, $logErrorDetails, $logger);
+
+if(!$settings->get('displayErrorDetails')) {
+	$errorMiddleware->setDefaultErrorHandler($errorHandler);
+}
 
 // Run App & Emit Response
 $response = $app->handle($request);
