@@ -62,10 +62,11 @@ $logErrorDetails = $settings->get('logErrorDetails');
 // Create Request object from globals
 $serverRequestCreator = ServerRequestCreatorFactory::create();
 $request = $serverRequestCreator->createServerRequestFromGlobals();
+$logger = $app->getContainer()->get(LoggerInterface::class);
 
 // Create Error Handler
 $responseFactory = $app->getResponseFactory();
-$errorHandler = new HttpErrorHandler($callableResolver, $responseFactory);
+$errorHandler = new HttpErrorHandler($callableResolver, $responseFactory, $logger);
 
 // Create Shutdown Handler
 $shutdownHandler = new ShutdownHandler($request, $errorHandler, $displayErrorDetails);
@@ -77,7 +78,6 @@ $app->addRoutingMiddleware();
 // Add Body Parsing Middleware
 $app->addBodyParsingMiddleware();
 
-$logger = $app->getContainer()->get(LoggerInterface::class);
 
 // Add Error Middleware
 $errorMiddleware = $app->addErrorMiddleware($displayErrorDetails, $logError, $logErrorDetails, $logger);
