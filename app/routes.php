@@ -2,6 +2,8 @@
 
 declare(strict_types=1);
 
+use App\Application\Actions\User\ListUsersAction;
+use App\Application\Actions\LoginAction;
 use App\Application\Actions\WelcomeAction;
 use Psr\Http\Message\ResponseInterface as Response;
 use Psr\Http\Message\ServerRequestInterface as Request;
@@ -15,5 +17,10 @@ return function (App $app) {
     });
 
     $app->get('/', WelcomeAction::class);
+    $app->get('/login', LoginAction::class)->setName('login');
+    $app->post('/login', LoginAction::class);
 
+    $app->group('/users', function (Group $group) {
+        $group->get('', ListUsersAction::class);
+    });
 };
