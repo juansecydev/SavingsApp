@@ -43,6 +43,11 @@ return function (ContainerBuilder $containerBuilder) {
                     'path' => env('LOG_PATH', isset($_ENV['docker']) ? 'php://stdout' : __DIR__ . '/../logs/app.log'),
                     'level' => Level::fromName((string) env('LOG_LEVEL', 'Debug')),
                 ],
+                'sql_logger' => [
+                    'name' => env('SQL_LOG_NAME', 'sql'),
+                    'path' => env('SQL_LOG_PATH', __DIR__ . '/../logs/sql.log'),
+                    'level' => Level::fromName((string) env('SQL_LOG_LEVEL', 'Debug')),
+                ],
             ]);
         }
     ]);
