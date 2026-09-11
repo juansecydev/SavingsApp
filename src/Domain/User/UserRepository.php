@@ -17,4 +17,9 @@ interface UserRepository
      * @throws UserNotFoundException
      */
     public function findUserOfId(int $id): User;
+
+    /**
+     * Find the current user version by email address.
+     */
+    public function findByEmail(string $email): ?User;
 }
