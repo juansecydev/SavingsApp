@@ -5,6 +5,7 @@ declare(strict_types=1);
 use App\Application\Actions\User\ListUsersAction;
 use App\Application\Actions\LoginAction;
 use App\Application\Actions\WelcomeAction;
+use App\Application\Middleware\LoginMiddleware;
 use Psr\Http\Message\ResponseInterface as Response;
 use Psr\Http\Message\ServerRequestInterface as Request;
 use Slim\App;
@@ -18,7 +19,7 @@ return function (App $app) {
 
     $app->get('/', WelcomeAction::class);
     $app->get('/login', LoginAction::class)->setName('login');
-    $app->post('/login', LoginAction::class);
+    $app->post('/login', LoginAction::class)->add(LoginMiddleware::class);
 
     $app->group('/users', function (Group $group) {
         $group->get('', ListUsersAction::class);
