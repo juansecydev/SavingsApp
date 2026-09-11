@@ -1,0 +1,184 @@
+{% extends "base.html.twig" %}
+
+{% block title %}
+    Detalle de cuenta - SavingsApp
+{% endblock %}
+
+{% block stylesheets %}
+    <link rel="stylesheet" href="/public/js/libs/DataTables/datatables.min.css">
+{% endblock %}
+
+{% block content %}
+    <div class="container py-5">
+        <div class="row justify-content-center">
+            <div class="col-12 col-md-8">
+                <div class="card shadow-sm">
+                    <div class="card-body">
+                        <div class="d-flex justify-content-between align-items-center mb-4">
+                            <div>
+                                <h1 class="h3 mb-1">{{ account.account_name }}</h1>
+                                <p class="text-muted mb-0">Detalle de la cuenta seleccionada.</p>
+                            </div>
+                            <a href="/welcome" class="btn btn-outline-secondary">Volver</a>
+                        </div>
+
+                        <div class="row">
+                            <div class="col-12 col-md-6 mb-3">
+                                <div class="card p-3 h-100">
+                                    <h5>Saldo actual</h5>
+                                    <p class="mb-0 fs-4 fw-bold">
+                                        {{ account.account_amount|number_format(2, ',', '.') }}
+                                        {% if account.currency %}
+                                            {{ account.currency.currency_code }}
+                                        {% endif %}
+                                    </p>
+                                </div>
+                            </div>
+                            <div class="col-12 col-md-6 mb-3">
+                                <div class="card p-3 h-100">
+                                    <h5>Moneda</h5>
+                                    <p class="mb-0">
+                                        {% if account.currency %}
+                                            {{ account.currency.currency_name }} ({{ account.currency.currency_code }})
+                                        {% else %}
+                                            No disponible
+                                        {% endif %}
+                                    </p>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="mt-3">
+                            <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#transactionModal">
+                                Agregar transacción
+                            </button>
+                        </div>
+
+                        <div class="card p-3 mt-4">
+                            <h5 class="mb-3">Transacciones</h5>
+                            <div class="table-responsive">
+                                <table id="transactions-table" class="table table-striped table-bordered w-100">
+                                    <thead>
+                                        <tr>
+                                            <th>Fecha</th>
+                                            <th>Tipo</th>
+                                            <th>Monto</th>
+                                            <th>Descripción</th>
+                                        </tr>
+                                    </thead>
+                                    <tfoot>
+                                        <tr>
+                                            <th><input type="text" placeholder="Buscar fecha" class="form-control form-control-sm" /></th>
+                                            <th><input type="text" placeholder="Buscar tipo" class="form-control form-control-sm" /></th>
+                                            <th><input type="text" placeholder="Buscar monto" class="form-control form-control-sm" /></th>
+                                            <th><input type="text" placeholder="Buscar descripción" class="form-control form-control-sm" /></th>
+                                        </tr>
+                                    </tfoot>
+                                    <tbody>
+                                        {% set txs = account.transactions is defined ? account.transactions : [] %}
+                                        {% for t in txs %}
+                                            {% set date = t.transaction_created_at|default('') %}
+                                            {% set type = t.transactionType is defined and t.transactionType ? t.transactionType.transaction_type_description : '' %}
+                                            {% set amt_raw = t.transaction_amount|default(null) %}
+                                            {% set desc = t.transaction_description|default('') %}
+                                            <tr>
+                                                <td>{{ date }}</td>
+                                                <td>{{ type }}</td>
+                                                <td>
+                                                    {% if amt_raw is not null %}
+                                                        {{ amt_raw|number_format(2, ',', '.') }}
+                                                        {% if account.currency %} {{ account.currency.currency_code }}{% endif %}
+                                                    {% endif %}
+                                                </td>
+                                                <td>{{ desc }}</td>
+                                            </tr>
+                                        {% endfor %}
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal fade" id="transactionModal" tabindex="-1" aria-labelledby="transactionModalLabel" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <form method="POST" action="/accounts/{{ account.account_id }}/transactions"
+                      data-currency-code="{{ account.currency.currency_code|default('') }}"
+                      data-currency-decimals="{{ account.currency.currency_decimals|default(2) }}"
+                      data-currency-symbol="{{ account.currency.currency_symbol|default('') }}">
+                    <div class="modal-header">
+                        <h5 class="modal-title" id="transactionModalLabel">Nueva transacción</h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
+                    </div>
+                    <div class="modal-body">
+                        {% if errors is defined and errors|length > 0 %}
+                            <div class="alert alert-danger">
+                                <ul class="mb-0">
+                                    {% for fieldErrors in errors %}
+                                        {% for error in fieldErrors %}
+                                            <li>{{ error }}</li>
+                                        {% endfor %}
+                                    {% endfor %}
+                                </ul>
+                            </div>
+                        {% endif %}
+
+                        <div class="mb-3">
+                            <label for="transaction_amount_visual" class="form-label">Monto <span class="text-danger">*</span></label>
+                            <div class="input-group">
+                                <span class="input-group-text" id="transaction_currency_symbol">{{ account.currency.currency_symbol|default(account.currency.currency_code|default('')) }}</span>
+                                <input type="text"
+                                       class="form-control"
+                                       id="transaction_amount_visual"
+                                       name="transaction_amount_visual"
+                                       inputmode="decimal"
+                                       autocomplete="off"
+                                       placeholder="0.00"
+                                       value="{{ old_transaction_amount|default('') }}"
+                                       required>
+                                <input type="hidden" id="transaction_amount" name="transaction_amount" value="{{ old_transaction_amount|default('') }}">
+                            </div>
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="transaction_transaction_type_id" class="form-label">Tipo de transacción <span class="text-danger">*</span></label>
+                            <select class="form-select" id="transaction_transaction_type_id" name="transaction_transaction_type_id" required>
+                                <option value="" disabled {% if old_transaction_transaction_type_id is not defined or old_transaction_transaction_type_id == '' %}selected{% endif %}>Selecciona un tipo</option>
+                                {% for transactionType in transactionTypes %}
+                                    <option value="{{ transactionType.transaction_type_id }}" {% if old_transaction_transaction_type_id is defined and old_transaction_transaction_type_id == transactionType.transaction_type_id %}selected{% endif %}>
+                                        {{ transactionType.transaction_type_description }}{% if transactionType.transaction_type_operation_symbol %} ({{ transactionType.transaction_type_operation_symbol }}){% endif %}
+                                    </option>
+                                {% endfor %}
+                            </select>
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="transaction_description" class="form-label">Descripción <span class="text-danger">*</span></label>
+                            <textarea class="form-control" id="transaction_description" name="transaction_description" rows="3" required>{{ old_transaction_description|default('') }}</textarea>
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="transaction_reference" class="form-label">Referencia <span class="text-muted">(opcional)</span></label>
+                            <input type="text" class="form-control" id="transaction_reference" name="transaction_reference" value="{{ old_transaction_reference|default('') }}" maxlength="50">
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Cancelar</button>
+                        <button type="submit" class="btn btn-primary">Crear</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+{% endblock %}
+
+{% block javascript %}
+    <script src="/public/js/libs/jQuery/jquery-4.0.0.min.js"></script>
+    <script src="/public/js/libs/DataTables/datatables.min.js"></script>
+    <script src="/public/js/scripts/accounts-detail.js"></script>
+    <script src="/public/js/modules/transaction/create.js"></script>
+{% endblock %}

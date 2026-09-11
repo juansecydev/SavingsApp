@@ -1,0 +1,85 @@
+{% extends "base.html.twig" %}
+
+{% block title %}
+    Bienvenido {{ user.user_name }} {{ user.user_lastname }}
+{% endblock %}
+
+{% block content %}
+    <div class="container py-5">
+        <div class="row justify-content-center">
+            <div class="col-12 col-md-8">
+                <div class="card shadow-sm">
+                    <div class="card-body">
+                        <div class="d-flex justify-content-between align-items-center mb-4">
+                            <div>
+                                <h1 class="h3">Bienvenido/a, {{ user.user_name }} {{ user.user_lastname }}</h1>
+                                <p class="text-muted">Has iniciado sesión correctamente.</p>
+                            </div>
+                            <a href="/logout" class="btn btn-outline-secondary">Cerrar sesión</a>
+                        </div>
+
+                        <div class="row">
+                            <div class="col-12 col-md-6 mb-3">
+                                <div class="card p-3">
+                                    <h5>Correo electrónico</h5>
+                                    <p class="mb-0">{{ user.user_email }}</p>
+                                </div>
+                            </div>
+                            <div class="col-12 col-md-6 mb-3">
+                                <div class="card p-3">
+                                    <h5>Fecha de registro</h5>
+                                    <p class="mb-0">{{ user.created_at ? user.created_at|date('d/m/Y H:i') : 'No disponible' }}</p>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Sección de Cuentas -->
+                        <div class="mt-4">
+                            {% if accounts|length > 0 %}
+                                <!-- Mostrar cuentas existentes -->
+                                <h5 class="mb-3">Mis Cuentas</h5>
+                                <div class="row">
+                                    {% for account in accounts %}
+                                        <div class="col-12 col-md-6 mb-3">
+                                            <div class="card border-primary">
+                                                <div class="card-body">
+                                                    <h6 class="card-title">{{ account.account_name }}</h6>
+                                                    <p class="card-text">
+                                                        <strong>Saldo:</strong> {{ account.account_amount|number_format(2, ',', '.') }}
+                                                        {% if account.currency %}
+                                                            {{ account.currency.currency_code }}
+                                                        {% endif %}
+                                                    </p>
+                                                    <a href="/accounts/detail/{{ account.account_id }}" class="btn btn-sm btn-outline-primary">Ver detalles</a>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    {% endfor %}
+                                </div>
+                                <div class="mt-3">
+                                    <a href="/accounts/create" class="btn btn-primary">Agregar nueva cuenta</a>
+                                </div>
+                            {% else %}
+                                <!-- Mostrar sección de creación de cuenta -->
+                                <div class="p-4 bg-info bg-opacity-10 rounded border border-info">
+                                    <div class="text-center">
+                                        <h5 class="mb-3">No tienes cuentas registradas</h5>
+                                        <p class="text-muted mb-4">Comienza a organizar tus ahorros creando tu primera cuenta.</p>
+                                        <a href="/accounts/create" class="btn btn-primary btn-lg">
+                                            <i class="bi bi-plus-circle"></i> Crear mi primera cuenta
+                                        </a>
+                                    </div>
+                                </div>
+                            {% endif %}
+                        </div>
+
+                        <div class="mt-4 p-3 bg-light rounded">
+                            <h5>Información</h5>
+                            <p>Este es tu panel de bienvenida. Aquí puedes ver tus cuentas de ahorro y gestionar tus transacciones.</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+{% endblock %}

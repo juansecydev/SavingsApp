@@ -1,0 +1,129 @@
+{% extends "base.html.twig" %}
+
+{% block title %}
+    Crear Nueva Cuenta
+{% endblock %}
+
+{% block content %}
+    <div class="container py-5">
+        <div class="row justify-content-center">
+            <div class="col-12 col-md-8">
+                <div class="card shadow-sm">
+                    <div class="card-body">
+                        <div class="d-flex align-items-center mb-4">
+                            <a href="/welcome" class="btn btn-outline-secondary btn-sm me-3">
+                                <i class="bi bi-arrow-left"></i> Volver
+                            </a>
+                            <h1 class="h3 mb-0">Crear Nueva Cuenta</h1>
+                        </div>
+
+                        <form method="POST" action="/accounts/create" novalidate>
+                            <div class="mb-3">
+                                <label for="account_name" class="form-label">Nombre de la Cuenta *</label>
+                                <input 
+                                    type="text" 
+                                    class="form-control {% if errors is defined and errors.account_name is defined %}is-invalid{% endif %}" 
+                                    id="account_name" 
+                                    name="account_name" 
+                                    placeholder="Ej: Cuenta de Ahorros, Fondo de Emergencia"
+                                    maxlength="25"
+                                    required
+                                    value="{{ old_account_name is defined ? old_account_name : '' }}"
+                                >
+                                {% if errors is defined and errors.account_name is defined %}
+                                    <div class="invalid-feedback d-block">
+                                        {% for message in errors.account_name %}
+                                            {{ message }}<br>
+                                        {% endfor %}
+                                    </div>
+                                {% else %}
+                                    <div class="invalid-feedback"></div>
+                                {% endif %}
+                                <small class="form-text text-muted">Describe el propósito o nombre de esta cuenta.</small>
+                            </div>
+
+                            <div class="mb-3">
+                                <label for="account_currency_id" class="form-label">Moneda *</label>
+                                <select 
+                                    class="form-select {% if errors is defined and errors.account_currency_id is defined %}is-invalid{% endif %}" 
+                                    id="account_currency_id" 
+                                    name="account_currency_id"
+                                    required
+                                >
+                                    <option value="" disabled hidden {% if old_account_currency_id is not defined or old_account_currency_id == '' %}selected{% endif %}>-- Selecciona una moneda --</option>
+                                    {% for currency in currencies %}
+                                        <option value="{{ currency.currency_id }}" data-code="{{ currency.currency_code }}" data-decimals="{{ currency.currency_decimals }}" {% if old_account_currency_id is defined and old_account_currency_id == currency.currency_id %}selected{% endif %}>
+                                            {{ currency.currency_name }} ({{ currency.currency_code }})
+                                        </option>
+                                    {% endfor %}
+                                </select>
+                                {% if errors is defined and errors.account_currency_id is defined %}
+                                    <div class="invalid-feedback d-block">
+                                        {% for message in errors.account_currency_id %}
+                                            {{ message }}<br>
+                                        {% endfor %}
+                                    </div>
+                                {% else %}
+                                    <div class="invalid-feedback"></div>
+                                {% endif %}
+                                <small class="form-text text-muted">Elige la moneda en que está denominada esta cuenta.</small>
+                            </div>
+                            
+                            <div class="mb-3">
+                                <label for="account_amount_visual" class="form-label">Saldo Inicial *</label>
+                                <div class="input-group">
+                                    <span class="input-group-text" id="currency-symbol">$</span>
+                                    <input 
+                                        type="text" 
+                                        class="form-control {% if errors is defined and errors.account_amount is defined %}is-invalid{% endif %}"
+                                        id="account_amount_visual" 
+                                        name="account_amount_visual" 
+                                        placeholder="0.00"
+                                        inputmode="decimal"
+                                        autocomplete="off"
+                                        step="0.01"
+                                        min="0"
+                                        value="{{ old_account_amount is defined ? old_account_amount : '0' }}"
+                                        required
+                                    >
+                                    <input type="hidden" id="account_amount" name="account_amount" value="{{ old_account_amount is defined ? old_account_amount : '0' }}">
+                                </div>
+                                {% if errors is defined and errors.account_amount is defined %}
+                                    <div class="invalid-feedback d-block">
+                                        {% for message in errors.account_amount %}
+                                            {{ message }}<br>
+                                        {% endfor %}
+                                    </div>
+                                {% else %}
+                                    <div class="invalid-feedback"></div>
+                                {% endif %}
+                                <small class="form-text text-muted">Ingresa el saldo inicial de la cuenta (opcional, por defecto es 0).</small>
+                            </div>
+
+
+                            <div class="d-grid gap-2 mt-4">
+                                <button type="submit" class="btn btn-primary btn-lg">
+                                    <i class="bi bi-check-circle"></i> Crear Cuenta
+                                </button>
+                                <a href="/welcome" class="btn btn-outline-secondary">Cancelar</a>
+                            </div>
+                        </form>
+
+                        <div class="mt-4 p-3 bg-light rounded">
+                            <h6>Notas Importantes</h6>
+                            <ul class="mb-0">
+                                <li>Puedes crear múltiples cuentas con diferentes monedas.</li>
+                                <li>El saldo inicial puede ser modificado más adelante.</li>
+                                <li>Todos los campos marcados con * son obligatorios.</li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+{% endblock %}
+{% block javascript %}
+    <script src="/public/js/modules/account/create.js" type="module"></script>
+{% endblock %}
+

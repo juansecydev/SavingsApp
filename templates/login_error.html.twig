@@ -1,0 +1,94 @@
+{% extends "base.html.twig" %}
+
+{% block title %}
+    {{ title }}
+{% endblock %}
+
+{% block content %}
+
+    <div class="container">
+        <div class="row justify-content-center">
+            <div class="col-12 col-sm-10 col-md-6 col-lg-4">
+                <div class="card mt-5 shadow-sm">
+                    <div class="card-body">
+                        <h1 class="h4 text-center mb-4">
+                            Iniciar sesión
+                        </h1>
+
+                        {% if errors is defined and errors is not empty %}
+                            <div class="alert alert-danger" role="alert">
+                                <strong>Por favor corrige los siguientes errores:</strong>
+                                <ul class="mb-0 mt-2">
+                                    {% for field, messages in errors %}
+                                        {% for message in messages %}
+                                            <li>{{ message }}</li>
+                                        {% endfor %}
+                                    {% endfor %}
+                                </ul>
+                            </div>
+                        {% endif %}
+
+                        <form method="post" action="{{ url_for('login') }}">
+                            <div class="mb-3">
+                                <label for="email" class="form-label">
+                                    Correo electrónico
+                                </label>
+                                <input 
+                                    type="email" 
+                                    id="email" 
+                                    name="email" 
+                                    class="form-control {% if errors is defined and errors.email is defined %}is-invalid{% endif %}" 
+                                    placeholder="correo@ejemplo.com" 
+                                    value="{{ old_email is defined ? old_email : '' }}"
+                                    required>
+                                {% if errors is defined and errors.email is defined %}
+                                    <div class="invalid-feedback d-block">
+                                        {% for message in errors.email %}
+                                            {{ message }}<br>
+                                        {% endfor %}
+                                    </div>
+                                {% endif %}
+                            </div>
+                            <div class="mb-3">
+                                <label for="password" class="form-label">
+                                    Contraseña
+                                </label>
+                                <input 
+                                    type="password" 
+                                    id="password" 
+                                    name="password" 
+                                    class="form-control {% if errors is defined and errors.password is defined %}is-invalid{% endif %}" 
+                                    required>
+                                {% if errors is defined and errors.password is defined %}
+                                    <div class="invalid-feedback d-block">
+                                        {% for message in errors.password %}
+                                            {{ message }}<br>
+                                        {% endfor %}
+                                    </div>
+                                {% endif %}
+                            </div>
+                            <div class="d-grid mb-3">
+                                <button type="submit" class="btn btn-primary">
+                                    Iniciar sesión
+                                </button>
+                            </div>
+                            <div class="text-center">
+                                <a href="/registro" class="text-decoration-none">
+                                    ¿No tienes cuenta? Regístrate
+                                </a>
+                            </div>
+                        </form>
+
+                        {% if debug is defined %}
+                            <div class="mt-4 p-3 bg-light rounded">
+                                <h6>Información de depuración:</h6>
+                                <pre style="font-size: 0.85rem;">{{ dump(debug) }}</pre>
+                            </div>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+{% endblock %}
