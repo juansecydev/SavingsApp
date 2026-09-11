@@ -11,6 +11,7 @@ use Psr\Container\ContainerInterface;
 use Psr\Log\LoggerInterface;
 use Slim\Views\Twig;
 use Twig\Extension\DebugExtension;
+use App\Infrastructure\Persistence\Database\QueryBuilder;
 
 return function (ContainerBuilder $containerBuilder) {
     $containerBuilder->addDefinitions([
@@ -27,6 +28,17 @@ return function (ContainerBuilder $containerBuilder) {
             $logger->pushHandler($handler);
 
             return $logger;
+        },
+        'sql_logger' => function (ContainerInterface $c) {
+            $settings = $c->get(SettingsInterface::class);
+            $loggerSettings = $settings->get('sql_logger');
+            $logger = new Logger($loggerSettings['name']);
+            $logger->pushHandler(new StreamHandler($loggerSettings['path'], $loggerSettings['level']));
+
+            return $logger;
+        },
+        QueryBuilder::class => function (ContainerInterface $c) {
+            return new QueryBuilder($c->get(PDO::class), $c->get('sql_logger'));
         },
         Twig::class => function (ContainerInterface $c) {
 
@@ -68,6 +80,10 @@ return function (ContainerBuilder $containerBuilder) {
                 PDO::ATTR_EMULATE_PREPARES   => false,                  
             ];
 
+            if ($dbSettings['driver'] === 'sqlite') {
+                return new PDO('sqlite:' . $dbSettings['database'], null, null, $options);
+            }
+
             $dsn = sprintf(
                 'mysql:host=%s;port=%d;dbname=%s;charset=%s',
                 $dbSettings['host'],
@@ -76,7 +92,7 @@ return function (ContainerBuilder $containerBuilder) {
                 $dbSettings['charset']
             );
 
-            return new PDO($dsn, $dbSettings['user'], $dbSettings['pasword'], $options);
+            return new PDO($dsn, $dbSettings['user'], $dbSettings['password'], $options);
         }
     ]);
 };
