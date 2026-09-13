@@ -7,7 +7,7 @@ use App\Domain\User\User;
 
 class Session
 {
-    public const SESSION_KEY = 'auth_user_id';
+    public const SESSION_KEY = 'user_id';
     private const COOKIE_SAMESITE = 'Strict';
 
     public static function startSession(): void
@@ -50,10 +50,25 @@ class Session
         session_regenerate_id(true);
 
         $_SESSION[self::SESSION_KEY] = $user->getId();
-        $_SESSION[];
-        $_SESSION['auth_created_at'] = time();
-        $_SESSION['auth_last_activity'] = time();
-        $_SESSION['auth_fingerprint'] = self::generateFingerprint();
+        $_SESSION['user_id'] = $user->getId();
+        $_SESSION['user_version_id'] = $user->getVersionId();
+        $_SESSION['user_version_number'] = $user->getVersionNumber();
+        $_SESSION['user_first_name'] = $user->getFirstName();
+        $_SESSION['user_last_name'] = $user->getLastName();
+        $_SESSION['user_email'] = $user->getEmail();
+        $_SESSION['user_role_id'] = $user->getRoleId();
+        $_SESSION['user_profile_picture'] = $user->getProfilePicture();
+        $_SESSION['user_is_admin'] = $user->isAdmin();
+        $_SESSION['session_created_at'] = time();
+        $_SESSION['session_last_activity'] = time();
+        $_SESSION['session_fingerprint'] = self::generateFingerprint();
+    }
+    
+    public static function getData(string $key): mixed
+    {
+        self::startSession();
+        return $_SESSION[$key] ?? null;
+
     }
 
     public static function logout(): void
@@ -80,45 +95,41 @@ class Session
 
     }
 
-    public static function user(): ?User
+    public static function validateSession(): bool
     {
         self::startSession();
 
         $userId = $_SESSION[self::SESSION_KEY] ?? null;
 
         if ($userId === null) {
-            return null;
+            return false;
         }
 
         if (!is_numeric($userId)) {
             self::logout();
-            return null;
+            return false;
         }
 
         // Validate fingerprint
-        $fingerprint = $_SESSION['auth_fingerprint'] ?? null;
+        $fingerprint = $_SESSION['session_fingerprint'] ?? null;
         if ($fingerprint === null || $fingerprint !== self::generateFingerprint()) {
             self::logout();
-            return null;
+            return false;
         }
 
         // Validate inactivity timeout
-        $last = $_SESSION['auth_last_activity'] ?? $_SESSION['auth_created_at'] ?? null;
+        $last = $_SESSION['session_last_activity'] ?? $_SESSION['session_created_at'] ?? null;
         if ($last !== null && (time() - (int)$last) > env('SESSION_TIMEOUT', 1800)) { // Default to 30 minutes if not set
             self::logout();
-            return null;
+            return false;
         }
 
         // Update last activity timestamp
-        $_SESSION['auth_last_activity'] = time();
+        $_SESSION['session_last_activity'] = time();
 
-        return User::find((int) $userId);
+        return true;
     }
-
-    public static function check(): bool
-    {
-        return self::user() !== null;
-    }
+    
 
     private static function generateFingerprint(): string
     {
