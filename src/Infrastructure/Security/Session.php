@@ -4,12 +4,11 @@ declare(strict_types=1);
 namespace App\Infrastructure\Security;
 
 use App\Domain\User\User;
-use Adevlinux\SavingsApp\core\AppInjector as App;
 
-class Auth
+class Session
 {
     public const SESSION_KEY = 'auth_user_id';
-    private const COOKIE_SAMESITE = 'Lax';
+    private const COOKIE_SAMESITE = 'Strict';
 
     public static function startSession(): void
     {
@@ -50,7 +49,8 @@ class Auth
         // Regenerate session id to prevent session fixation
         session_regenerate_id(true);
 
-        $_SESSION[self::SESSION_KEY] = $user->user_id;
+        $_SESSION[self::SESSION_KEY] = $user->getId();
+        $_SESSION[];
         $_SESSION['auth_created_at'] = time();
         $_SESSION['auth_last_activity'] = time();
         $_SESSION['auth_fingerprint'] = self::generateFingerprint();
@@ -104,7 +104,7 @@ class Auth
 
         // Validate inactivity timeout
         $last = $_SESSION['auth_last_activity'] ?? $_SESSION['auth_created_at'] ?? null;
-        if ($last !== null && (time() - (int)$last) > App::get('session_timeout', 1800)) { // Default to 30 minutes if not set
+        if ($last !== null && (time() - (int)$last) > env('SESSION_TIMEOUT', 1800)) { // Default to 30 minutes if not set
             self::logout();
             return null;
         }
