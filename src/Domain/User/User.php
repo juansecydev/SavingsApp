@@ -24,7 +24,7 @@ class User implements JsonSerializable
 
     private int $versionNumber;
 
-    private ?string $pfp;
+    private ?string $profilePicture;
 
     private int $roleId;
 
@@ -35,7 +35,7 @@ class User implements JsonSerializable
         string $lastName,
         string $email,
         string $passwordHash,
-        ?string $pfp,
+        ?string $profilePicture,
         int $roleId
     ) {
         $this->id = $id;
@@ -44,8 +44,13 @@ class User implements JsonSerializable
         $this->lastName = ucfirst($lastName);
         $this->email = strtolower($email);
         $this->passwordHash = $passwordHash;
-        $this->pfp = $pfp;
+        $this->profilePicture = $profilePicture;
         $this->roleId = $roleId;
+    }
+
+    public function isAdmin(): bool
+    {
+        return $this->roleId === 1;
     }
 
     public function getId(): ?int
@@ -83,9 +88,9 @@ class User implements JsonSerializable
         return $this->versionNumber;
     }
 
-    public function getPfp(): string
+    public function getProfilePicture(): string
     {
-        return $this->pfp;
+        return $this->profilePicture;
     }
 
     public function getRoleId(): int
@@ -103,9 +108,9 @@ class User implements JsonSerializable
         $this->username = strtolower($username);
     }
 
-    public function setPfp(string $pfp): void
+    public function setprofilePicture(string $profilePicture): void
     {
-        $this->pfp = $pfp;
+        $this->profilePicture = $profilePicture;
     }
 
     public function setRoleId(int $roleId): void
@@ -139,7 +144,7 @@ class User implements JsonSerializable
             'email' => $this->email,
             'versionId' => $this->versionId,
             'versionNumber' => $this->versionNumber,
-            'pfp' => $this->pfp,
+            'profilePicture' => $this->profilePicture,
             'roleId' => $this->roleId,
         ];
     }
