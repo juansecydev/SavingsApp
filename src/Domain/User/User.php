@@ -8,7 +8,9 @@ use JsonSerializable;
 
 class User implements JsonSerializable
 {
-    private ?int $id;
+    private int $id;
+
+    private int $versionId;
 
     private string $username;
 
@@ -20,20 +22,30 @@ class User implements JsonSerializable
 
     private ?string $passwordHash;
 
+    private int $versionNumber;
+
+    private ?string $pfp;
+
+    private int $roleId;
+
     public function __construct(
-        ?int $id,
-        string $username,
+        int $id,
+        int $versionId,
         string $firstName,
         string $lastName,
-        ?string $email = null,
-        ?string $passwordHash = null
+        string $email,
+        string $passwordHash,
+        ?string $pfp,
+        int $roleId
     ) {
         $this->id = $id;
-        $this->username = strtolower($username);
+        $this->versionId = $versionId;
         $this->firstName = ucfirst($firstName);
         $this->lastName = ucfirst($lastName);
-        $this->email = $email === null ? null : strtolower($email);
+        $this->email = strtolower($email);
         $this->passwordHash = $passwordHash;
+        $this->pfp = $pfp;
+        $this->roleId = $roleId;
     }
 
     public function getId(): ?int
@@ -66,6 +78,56 @@ class User implements JsonSerializable
         return $this->passwordHash;
     }
 
+    public function getVersionNumber(): int
+    {
+        return $this->versionNumber;
+    }
+
+    public function getPfp(): string
+    {
+        return $this->pfp;
+    }
+
+    public function getRoleId(): int
+    {
+        return $this->roleId;
+    }
+
+    public function setId(int $id): void
+    {
+        $this->id = $id;
+    }
+
+    public function setUsername(string $username): void
+    {
+        $this->username = strtolower($username);
+    }
+
+    public function setPfp(string $pfp): void
+    {
+        $this->pfp = $pfp;
+    }
+
+    public function setRoleId(int $roleId): void
+    {
+        $this->roleId = $roleId;
+    }
+
+    public function setVersionNumber(int $versionNumber): void
+    {
+        $this->versionNumber = $versionNumber;
+    }
+
+    public function setVersionId(int $versionId): void
+    {
+        $this->versionId = $versionId;
+    }
+
+    public function getVersionId(): int
+    {
+        return $this->versionId;
+    }
+
     #[\ReturnTypeWillChange]
     public function jsonSerialize(): array
     {
@@ -74,6 +136,11 @@ class User implements JsonSerializable
             'username' => $this->username,
             'firstName' => $this->firstName,
             'lastName' => $this->lastName,
+            'email' => $this->email,
+            'versionId' => $this->versionId,
+            'versionNumber' => $this->versionNumber,
+            'pfp' => $this->pfp,
+            'roleId' => $this->roleId,
         ];
     }
 }
