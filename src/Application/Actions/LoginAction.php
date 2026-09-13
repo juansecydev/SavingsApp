@@ -8,6 +8,7 @@ use App\Domain\User\User;
 use Psr\Http\Message\ResponseInterface as Response;
 use Psr\Http\Message\ServerRequestInterface as Request;
 use Slim\Views\Twig;
+use App\Infrastructure\Security\Session;
 
 class LoginAction
 {
@@ -21,6 +22,8 @@ class LoginAction
 
         /** @var User $user */
         $user = $request->getAttribute('user');
+        // Now we can create a session for the authenticated user and store their information in it.
+        Session::login($user);
 
         return $this->twig->render($response, 'welcome.html.twig', [
             'user' => [
