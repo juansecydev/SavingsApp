@@ -9,6 +9,7 @@ class Session
 {
     public const SESSION_KEY = 'user_id';
     private const COOKIE_SAMESITE = 'Strict';
+    public const CSRF_TOKEN_KEY = 'csrf_token';
 
     public static function startSession(): void
     {
@@ -62,6 +63,9 @@ class Session
         $_SESSION['session_created_at'] = time();
         $_SESSION['session_last_activity'] = time();
         $_SESSION['session_fingerprint'] = self::generateFingerprint();
+        // To re-generate csrf token
+        $_SESSION[self::CSRF_TOKEN_KEY] = null;
+        CSRFValidator::getCSRFToken();
     }
     
     public static function getData(string $key): mixed
@@ -71,12 +75,20 @@ class Session
 
     }
 
+    public static function setData(string $key, mixed $value): void{
+        self::startSession();
+        $_SESSION[$key] = $value;
+    }
+
     public static function logout(): void
     {
         self::startSession();
 
         if (isset($_SESSION[self::SESSION_KEY])) {
             unset($_SESSION[self::SESSION_KEY]);
+        }
+        if (isset($_SESSION[self::CSRF_TOKEN_KEY])) {
+            unset($_SESSION[self::CSRF_TOKEN_KEY]);
         }
 
         $_SESSION = [];
