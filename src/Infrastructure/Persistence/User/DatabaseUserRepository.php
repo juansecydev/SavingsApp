@@ -27,12 +27,16 @@ class DatabaseUserRepository implements UserRepository
         return array_map(fn (array $row): User => $this->mapUser($row), $rows);
     }
 
-    public function findUserOfId(int $id): User
+    public function findUserById(int $id): User
     {
         $rows = $this->queryBuilder->ownQuery(
-            'SELECT user_version_user_id, user_version_names, user_version_last_names, '
-            . 'user_version_email, user_version_password FROM user_version '
-            . 'WHERE user_version_user_id = :id LIMIT 1',
+            'SELECT user_version_user_id, user_version_names, user_version_last_names, user_version_id, user_version_number,
+                user_version_email, user_version_password, user_version_profile_picture, user_version_role_id,
+                user_version_role_id, user_version_role_id, user_version_number, role_name
+            FROM user_version uv
+            INNER JOIN users u ON uv.user_version_user_id = u.user_id AND uv.user_version_number = u.user_current_version_number
+            INNER JOIN role r ON uv.user_version_role_id = r.role_id
+            WHERE u.user_id = :id LIMIT 1',
             ['id' => $id],
         );
 
@@ -47,13 +51,13 @@ class DatabaseUserRepository implements UserRepository
     {
         $rows = $this->queryBuilder->ownQuery(
             'SELECT 
-                user_version_user_id, user_version_names, user_version_last_names, 
+                user_version_user_id, user_version_names, user_version_last_names, user_version_id, user_version_number,
                 user_version_email, user_version_password, user_version_profile_picture, user_version_role_id,
-                user_version_role_id, user_version_role_id, role_name
+                user_version_role_id, user_version_role_id, user_version_number, role_name
             FROM user_version uv
-            INNER JOIN users u ON uv.user_version_user_id = u.user_id AND uv.version_number = u.user_current_version_number
+            INNER JOIN users u ON uv.user_version_user_id = u.user_id AND uv.user_version_number = u.user_current_version_number
             INNER JOIN role r ON uv.user_version_role_id = r.role_id
-            WHERE user_version_email = :email AND 
+            WHERE user_version_email = :email 
             LIMIT 1',
             ['email' => $email],
         );
@@ -77,6 +81,7 @@ class DatabaseUserRepository implements UserRepository
             $row['user_version_password'],
             $row['user_version_profile_picture'] ?? null,
             (int) $row['user_version_role_id'],
+            (int) $row['user_version_number']
         );
     }
 }
