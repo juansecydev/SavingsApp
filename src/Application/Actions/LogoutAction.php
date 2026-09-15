@@ -16,6 +16,6 @@ class LogoutAction
     public function __invoke(Request $request, Response $response, array $args): Response
     {
         Session::logout();
-        return $this->twig->render($response, 'login.html.twig',);
+        return $response->withHeader('Location', '/login')->withStatus(302);
     }
 }
