@@ -7,6 +7,7 @@ namespace App\Application\Middleware;
 use App\Application\Services\LoginService;
 use App\Infrastructure\Http\Sanitizer;
 use App\Infrastructure\Http\Validator;
+use App\Infrastructure\Security\CSRFValidator;
 use Psr\Http\Message\ResponseInterface as Response;
 use Psr\Http\Message\ServerRequestInterface as Request;
 use Psr\Http\Server\MiddlewareInterface;
@@ -50,10 +51,11 @@ class LoginMiddleware implements MiddlewareInterface
         }
 
         if (!empty($errors)) {
-            return $this->twig->render($this->responseFactory->createResponse(), 'login_error.html.twig', [
+            return $this->twig->render($this->responseFactory->createResponse(), 'login.html.twig', [
                 'title' => 'Error al iniciar sesión',
                 'errors' => $errors,
                 'old_email' => $credentials['email'] ?? '',
+                'csrf_token' => CSRFValidator::getCSRFToken(),
             ]);
         }
 
