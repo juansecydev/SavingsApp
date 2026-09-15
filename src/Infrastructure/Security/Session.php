@@ -20,7 +20,7 @@ class Session
             $cookieParams = [
                 'lifetime' => 0,
                 'path' => '/',
-                'domain' => $_SERVER['HTTP_HOST'] ?? '',
+                'domain' => '', // TODO: Set your domain if needed
                 'secure' => $secure,
                 'httponly' => true,
                 'samesite' => self::COOKIE_SAMESITE,
