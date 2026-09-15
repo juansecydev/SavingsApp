@@ -13,6 +13,7 @@ return function (ContainerBuilder $containerBuilder) {
     $containerBuilder->addDefinitions([
         SettingsInterface::class => function () {
             return new Settings([
+                'app_production' => (bool) env('APP_PRODUCTION', false),
                 'displayErrorDetails' => (bool) env('APP_DEBUG', true),
                 'logError'            => (bool) env('LOG_ERRORS', false),
                 'logErrorDetails'     => (bool) env('LOG_ERROR_DETAILS', false),
