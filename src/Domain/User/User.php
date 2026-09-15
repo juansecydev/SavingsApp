@@ -36,7 +36,8 @@ class User implements JsonSerializable
         string $email,
         string $passwordHash,
         ?string $profilePicture,
-        int $roleId
+        int $roleId,
+        int $versionNumber
     ) {
         $this->id = $id;
         $this->versionId = $versionId;
@@ -46,6 +47,7 @@ class User implements JsonSerializable
         $this->passwordHash = $passwordHash;
         $this->profilePicture = $profilePicture;
         $this->roleId = $roleId;
+        $this->versionNumber = $versionNumber;
     }
 
     public function isAdmin(): bool
