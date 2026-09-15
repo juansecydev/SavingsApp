@@ -24,8 +24,9 @@ class LoginAction
         $user = $request->getAttribute('user');
         // Now we can create a session for the authenticated user and store their information in it.
         Session::login($user);
+        return $response->withHeader('Location', '/welcome')->withStatus(302);
 
-        return $this->twig->render($response, 'welcome.html.twig', [
+        /* return $this->twig->render($response, 'welcome.html.twig', [
             'user' => [
                 'user_name' => $user->getFirstName(),
                 'user_lastname' => $user->getLastName(),
@@ -33,6 +34,6 @@ class LoginAction
                 'created_at' => null,
             ],
             'accounts' => [],
-        ]);
+        ]); */
     }
 }
