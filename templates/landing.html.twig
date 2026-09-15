@@ -15,6 +15,7 @@
                             Iniciar sesión
                         </h1>
                         <form method="post" action="/login">
+                            <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
                             <div class="mb-3">
                                 <label for="email" class="form-label">
                                     Correo electrónico

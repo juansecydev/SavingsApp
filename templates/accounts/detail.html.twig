@@ -110,6 +110,7 @@
                       data-currency-code="{{ account.currency.currency_code|default('') }}"
                       data-currency-decimals="{{ account.currency.currency_decimals|default(2) }}"
                       data-currency-symbol="{{ account.currency.currency_symbol|default('') }}">
+                                        <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
                     <div class="modal-header">
                         <h5 class="modal-title" id="transactionModalLabel">Nueva transacción</h5>
                         <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>

@@ -18,6 +18,7 @@
                         </div>
 
                         <form method="POST" action="/accounts/create" novalidate>
+                            <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
                             <div class="mb-3">
                                 <label for="account_name" class="form-label">Nombre de la Cuenta *</label>
                                 <input 
