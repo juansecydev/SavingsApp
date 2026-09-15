@@ -5,6 +5,7 @@ declare(strict_types=1);
 use App\Application\Middleware\LoginMiddleware;
 use App\Application\Middleware\SessionMiddleware;
 use App\Application\Actions\User\ListUsersAction;
+use App\Application\Actions\ViewLoginAction;
 use App\Application\Actions\LoginAction;
 use App\Application\Actions\LogoutAction;
 use App\Application\Actions\WelcomeAction;
@@ -21,7 +22,7 @@ return function (App $app) {
     });
 
     $app->get('/', WelcomeAction::class);
-    $app->get('/login', LoginAction::class)->setName('login');
+    $app->get('/login', ViewLoginAction::class)->setName('login');
     $app->post('/login', LoginAction::class)->add(LoginMiddleware::class);
     $app->post('/logout', LogoutAction::class)->setName('logout');
     
