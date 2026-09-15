@@ -6,6 +6,7 @@ namespace App\Application\Actions\User;
 use Slim\Views\Twig;
 use Psr\Http\Message\ResponseInterface as Response;
 use Psr\Http\Message\ServerRequestInterface as Request;
+use App\Infrastructure\Security\CSRFValidator;
 
 class WelcomeUserAction
 {
@@ -25,6 +26,7 @@ class WelcomeUserAction
                 'created_at' => null,
             ],
             'accounts' => [],
+            'csrf_token' => CSRFValidator::getCSRFToken(),
         ]);
     }
 }
