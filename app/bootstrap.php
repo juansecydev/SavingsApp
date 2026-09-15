@@ -23,12 +23,13 @@ return function (ContainerInterface $container): void {
     define('APP_NAME', $settings->get('app_name') ?? 'SavingsApp');
     define('APP_ERROR_LOG', APP_LOG_PATH . 'php-error.log');
 
-    if ((bool) ($settings->get('displayErrorDetails'))) {
+    if (env('APP_PRODUCTION')) {
         ini_set('display_errors', '0');
         ini_set('display_startup_errors', '0');
         ini_set('html_errors', '0');
         ini_set('session.cookie_secure', '1');
     } else {
+        ini_set('session.cookie_secure', '0');
         ini_set('display_errors', '1');
         ini_set('display_startup_errors', '1');
         ini_set('html_errors', '1');
