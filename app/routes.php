@@ -10,6 +10,8 @@ use App\Application\Actions\LoginAction;
 use App\Application\Actions\LogoutAction;
 use App\Application\Actions\WelcomeAction;
 use App\Application\Actions\User\WelcomeUserAction;
+use App\Application\Actions\User\ViewProfileUserAction;
+use App\Application\Actions\User\ProfileDataUserAction;
 use Psr\Http\Message\ResponseInterface as Response;
 use Psr\Http\Message\ServerRequestInterface as Request;
 use Slim\App;
@@ -25,10 +27,12 @@ return function (App $app) {
     $app->get('/login', ViewLoginAction::class)->setName('login');
     $app->post('/login', LoginAction::class)->add(LoginMiddleware::class);
     $app->post('/logout', LogoutAction::class)->setName('logout');
-    
+
     // Group routes for session middleware
     $app->group('', function (Group $group) {
-        $group->get('/welcome', WelcomeUserAction::class);
+        $group->get('/welcome', WelcomeUserAction::class)->setName('welcome');
+        $group->get('/profile', ViewProfileUserAction::class)->setName('profile');
+        $group->post('/profile', ProfileDataUserAction::class)->setName('profile.update');
     })->add(SessionMiddleware::class);
 
     $app->group('/users', function (Group $group) {
