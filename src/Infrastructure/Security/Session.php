@@ -13,6 +13,11 @@ class Session
 
     public static function startSession(): void
     {
+        /**
+         * You must call session_set_cookie_params() for every request and before session_start() because its changes only last during the current script execution and it configures how the session cookie is created
+         * Reset on load: PHP resets session settings back to the defaults stored in php.ini at the start of every new HTTP request
+         * If you call session_set_cookie_params() after starting the session, PHP has already used the old or default parameters
+        */
         if (session_status() === PHP_SESSION_NONE) {
 
             // Try to set secure flag when HTTPS is used
