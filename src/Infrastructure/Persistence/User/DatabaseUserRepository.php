@@ -81,7 +81,8 @@ class DatabaseUserRepository implements UserRepository
             $row['user_version_password'],
             $row['user_version_profile_picture'] ?? null,
             (int) $row['user_version_role_id'],
-            (int) $row['user_version_number']
+            (int) $row['user_version_number'],
+            $row['role_name'] ?? null
         );
     }
 }
