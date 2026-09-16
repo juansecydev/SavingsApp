@@ -3,22 +3,25 @@
 declare(strict_types=1);
 
 namespace App\Application\Actions\User;
-use Slim\Views\Twig;
-use Psr\Http\Message\ResponseInterface as Response;
-use Psr\Http\Message\ServerRequestInterface as Request;
+
+use App\Application\Actions\TwigAction;
 use App\Infrastructure\Security\CSRFValidator;
+use Psr\Http\Message\ResponseInterface as Response;
+use Psr\Log\LoggerInterface;
+use Slim\Views\Twig;
 
-class WelcomeUserAction
+class WelcomeUserAction extends TwigAction
 {
-
-    public function __construct(private Twig $twig) {}
-    /**
-     * {@inheritdoc}
-     */
-    public function __invoke(Request $request, Response $response, array $args): Response
+    public function __construct(LoggerInterface $logger, Twig $twig)
     {
-        $user = $request->getAttribute('user');
-        return $this->twig->render($response, 'welcome.html.twig', [
+        parent::__construct($logger, $twig);
+    }
+
+    protected function action(): Response
+    {
+        $user = $this->request->getAttribute('user');
+
+        return $this->renderView('welcome.html.twig', [
             'user' => [
                 'user_name' => $user->getFirstName(),
                 'user_lastname' => $user->getLastName(),

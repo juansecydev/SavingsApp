@@ -7,7 +7,7 @@ namespace App\Application\Actions;
 use App\Infrastructure\Security\CSRFValidator;
 use Psr\Http\Message\ResponseInterface as Response;
 
-class ViewLoginAction extends TwigAction
+class ViewProfileUserAction extends TwigAction
 {
     protected function action(): Response
     {

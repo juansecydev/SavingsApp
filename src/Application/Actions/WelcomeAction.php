@@ -4,19 +4,14 @@ declare(strict_types=1);
 
 namespace App\Application\Actions;
 
-use PDO;
-use Psr\Http\Message\ResponseInterface as Response;
-use Psr\Http\Message\ServerRequestInterface as Request;
-use Slim\Views\Twig;
 use App\Infrastructure\Security\CSRFValidator;
+use Psr\Http\Message\ResponseInterface as Response;
 
-class WelcomeAction
+class WelcomeAction extends TwigAction
 {
-    public function __construct(private Twig $twig, private PDO $db) {}
-
-    public function __invoke(Request $request, Response $response, array $args): Response
+    protected function action(): Response
     {
-        return $this->twig->render($response, 'landing.html.twig', [
+        return $this->renderView('landing.html.twig', [
             'csrf_token' => CSRFValidator::getCSRFToken(),
         ]);
     }
