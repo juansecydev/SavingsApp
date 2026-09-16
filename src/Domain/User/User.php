@@ -28,6 +28,8 @@ class User implements JsonSerializable
 
     private int $roleId;
 
+    private ?string $roleName;
+
     public function __construct(
         int $id,
         int $versionId,
@@ -37,7 +39,8 @@ class User implements JsonSerializable
         string $passwordHash,
         ?string $profilePicture,
         int $roleId,
-        int $versionNumber
+        int $versionNumber,
+        ?string $roleName = null
     ) {
         $this->id = $id;
         $this->versionId = $versionId;
@@ -48,6 +51,7 @@ class User implements JsonSerializable
         $this->profilePicture = $profilePicture;
         $this->roleId = $roleId;
         $this->versionNumber = $versionNumber;
+        $this->roleName = $roleName;
     }
 
     public function isAdmin(): bool
@@ -90,7 +94,7 @@ class User implements JsonSerializable
         return $this->versionNumber;
     }
 
-    public function getProfilePicture(): string
+    public function getProfilePicture(): ?string
     {
         return $this->profilePicture;
     }
@@ -98,6 +102,11 @@ class User implements JsonSerializable
     public function getRoleId(): int
     {
         return $this->roleId;
+    }
+
+    public function getRoleName(): ?string
+    {
+        return $this->roleName;
     }
 
     public function setId(int $id): void
