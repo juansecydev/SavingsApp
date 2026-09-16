@@ -15,10 +15,13 @@
                                 <h1 class="h3">Bienvenido/a, {{ user.user_name }} {{ user.user_lastname }}</h1>
                                 <p class="text-muted">Has iniciado sesión correctamente.</p>
                             </div>
-                            <form method="POST" action="{{ url_for('logout') }}">
-                                <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
-                                <button type="submit" class="btn btn-outline-secondary">Cerrar sesión</button>
-                            </form>
+                            <div class="d-flex gap-2">
+                                <a href="{{ url_for('profile') }}" class="btn btn-outline-primary">Mi perfil</a>
+                                <form method="POST" action="{{ url_for('logout') }}">
+                                    <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+                                    <button type="submit" class="btn btn-outline-danger">Cerrar sesión</button>
+                                </form>
+                            </div>
                         </div>
 
                         <div class="row">
