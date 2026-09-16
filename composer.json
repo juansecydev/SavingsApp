@@ -24,13 +24,13 @@
     "require": {
         "php": "^7.4 || ^8.0",
         "ext-json": "*",
-        "monolog/monolog": "^3.10",
+        "monolog/monolog": "^3.12",
         "php-di/php-di": "^6.4",
         "slim/psr7": "^1.8",
         "slim/slim": "^4.15.3",
-        "slim/twig-view": "^3.4",
+        "slim/twig-view": "^3.4.1",
         "sqids/sqids": "^0.5.0",
-        "twbs/bootstrap": "^5.3",
+        "twbs/bootstrap": "^5.3.8",
         "vlucas/phpdotenv": "^5.7"
     },
     "require-dev": {
