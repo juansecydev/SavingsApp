@@ -10,6 +10,17 @@ document.addEventListener('DOMContentLoaded', () => {
         ? profilePictureField.value
         : null;
 
+    FilePond.registerPlugin(FilePondPluginImageCrop,
+        FilePondPluginFileValidateSize,
+        FilePondPluginFileValidateType,
+        FilePondPluginImageCrop,
+        FilePondPluginImageExifOrientation,
+        FilePondPluginImagePreview,
+        FilePondPluginImageResize,
+        FilePondPluginImageTransform,
+        FilePondPluginImageValidateSize
+    );
+
     const pond = FilePond.create(fileInput, {
         allowMultiple: false,
         allowImagePreview: true,
