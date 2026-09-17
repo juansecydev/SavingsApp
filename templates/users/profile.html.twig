@@ -4,6 +4,12 @@
     Perfil de {{ profile.first_name }} {{ profile.last_name }}
 {% endblock %}
 
+{% block stylesheets %}
+    <link rel="stylesheet" href="resources/js/libs/Filepond/filepond.css">
+    <link rel="stylesheet" href="resources/css/FilepondProfile.css">
+    <link rel="stylesheet" href="resources/js/libs/Filepond/plugins/filepond-preview.css">
+{% endblock %}
+
 {% block content %}
     <div class="container py-5">
         <div class="row justify-content-center">
@@ -49,8 +55,22 @@
                             </div>
 
                             <div class="mb-3">
-                                <label for="profile_picture" class="form-label">Foto de perfil</label>
-                                <input type="text" id="profile_picture" name="profile_picture" class="form-control" value="{{ profile.profile_picture|default('') }}" readonly>
+                                <label for="profile_picture_input" class="form-label">Foto de perfil</label>
+                                <div class="profile-picture-upload">
+                                    <input
+                                        type="file"
+                                        id="profile_picture_input"
+                                        accept="image/png,image/jpeg"
+                                    >
+                                </div>
+                                <input
+                                    type="text"
+                                    id="profile_picture"
+                                    name="profile_picture"
+                                    class="form-control"
+                                    value="{{ profile.profile_picture|default('') }}"
+                                    readonly
+                                >
                             </div>
 
                             <div class="mb-3">
@@ -68,4 +88,16 @@
             </div>
         </div>
     </div>
+{% endblock %}
+{% block javascript %}
+    <script src="resources/js/libs/Filepond/plugins/filepond-exif-orientation.js"></script>
+    <script src="resources/js/libs/Filepond/plugins/filepond-img-resize.js"></script>
+    <script src="resources/js/libs/Filepond/plugins/filepond-img-transform.js"></script>
+    <script src="resources/js/libs/Filepond/plugins/filepond-img-validate-size.js"></script>
+    <script src="resources/js/libs/Filepond/plugins/filepond-preview.js"></script>
+    <script src="resources/js/libs/Filepond/plugins/filepond-type-validation.js"></script>
+    <script src="resources/js/libs/Filepond/plugins/filepond-validate-size.js"></script>
+    <script src="resources/js/libs/Filepond/plugins/filepond-crop.js"></script>
+    <script src="resources/js/libs/Filepond/filepond.js"></script>
+    <script src="resources/js/modules/user/FilepondProfile.js"></script>
 {% endblock %}
