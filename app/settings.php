@@ -38,7 +38,6 @@ return function (ContainerBuilder $containerBuilder) {
                 'front_cache_twig' => (bool) env('FRONT_CACHE_TWIG', false),
                 'debug_mode_twig' => (bool) env('DEBUG_MODE_TWIG', true),
                 'session_timeout' => (int) env('SESSION_TIMEOUT', 1800),
-                'storage_path' => env('STORAGE_PATH', __DIR__ . '/../storage/'),
                 'logger' => [
                     'name' => env('LOG_NAME', 'slim-app'),
                     'path' => env('LOG_PATH', isset($_ENV['docker']) ? 'php://stdout' : __DIR__ . '/../logs/app.log'),
