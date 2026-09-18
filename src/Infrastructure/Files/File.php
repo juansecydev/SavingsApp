@@ -93,7 +93,7 @@ class File
     public function getMimeType(): string
     {
         $mimeType = (new \finfo(FILEINFO_MIME_TYPE))->file($this->path);
-        
+
         if (!is_string($mimeType) || $mimeType === '') {
             throw new RuntimeException('The file MIME type could not be detected.');
         }
@@ -133,12 +133,12 @@ class File
      *
      * @param string[] $allowedMimeTypes MIME types accepted by the caller.
      * @return void
-     * @throws InvalidArgumentException When the MIME type is not allowed.
+    * @throws FileValidationException When the MIME type is not allowed.
      */
     public function validateMimeType(array $allowedMimeTypes): void
     {
         if (!in_array($this->getMimeType(), $allowedMimeTypes, true)) {
-            throw new InvalidArgumentException('The file MIME type is not allowed.');
+            throw new FileValidationException('The file MIME type is not allowed.');
         }
     }
 
@@ -147,7 +147,7 @@ class File
      *
      * @param string[] $allowedExtensions Extensions accepted without leading dots.
      * @return void
-     * @throws InvalidArgumentException When the extension is not allowed.
+    * @throws FileValidationException When the extension is not allowed.
      */
     public function validateExtension(array $allowedExtensions): void
     {
@@ -155,7 +155,7 @@ class File
         $allowedExtensions = array_map('strtolower', $allowedExtensions);
 
         if ($extension === '' || !in_array($extension, $allowedExtensions, true)) {
-            throw new InvalidArgumentException('The file extension is not allowed.');
+            throw new FileValidationException('The file extension is not allowed.');
         }
     }
 
@@ -164,12 +164,12 @@ class File
      *
      * @param int $maximumBytes Maximum accepted size in bytes.
      * @return void
-     * @throws InvalidArgumentException When the file is too large.
+    * @throws FileValidationException When the file is too large.
      */
     public function validateSize(int $maximumBytes): void
     {
         if ($maximumBytes < 0 || $this->getSize() > $maximumBytes) {
-            throw new InvalidArgumentException('The file size is not allowed.');
+            throw new FileValidationException('The file size is not allowed.');
         }
     }
 
@@ -177,12 +177,12 @@ class File
      * Require the file to contain readable image data.
      *
      * @return void
-     * @throws InvalidArgumentException When the file is not an image.
+    * @throws FileValidationException When the file is not an image.
      */
     public function validateImage(): void
     {
         if (!$this->isImage()) {
-            throw new InvalidArgumentException('The file is not a valid image.');
+            throw new FileValidationException('The file is not a valid image.');
         }
     }
 
@@ -193,7 +193,7 @@ class File
      * @param string[] $allowedExtensions Extensions accepted without leading dots.
      * @param int $maximumBytes Maximum accepted size in bytes.
      * @return void
-     * @throws InvalidArgumentException When any validation fails.
+    * @throws FileValidationException When any validation fails.
      */
     public function validate(array $allowedMimeTypes, array $allowedExtensions, int $maximumBytes): void
     {

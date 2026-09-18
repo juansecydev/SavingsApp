@@ -23,7 +23,7 @@ document.addEventListener('DOMContentLoaded', () => {
         imageCropAspectRatio: '1:1',
         labelIdle: 'Arrastra tu foto o <span class="filepond--label-action">explora</span>',
         acceptedFileTypes: ['image/png', 'image/jpeg'],
-        maxFileSize: '5MB',
+        maxFileSize: '2MB',
         allowBrowse: true,
         allowDrop: true,
         allowReplace: true,
