@@ -38,7 +38,7 @@
                             <div class="alert alert-success" role="alert">{{ success }}</div>
                         {% endif %}
 
-                        <form method="post" action="{{ url_for('profile.update') }}">
+                        <form method="post" action="{{ url_for('profile.update') }}" enctype="multipart/form-data">
                             <div class="mb-3">
                                 <label for="first_name" class="form-label">Nombres</label>
                                 <input type="text" id="first_name" name="first_name" class="form-control" value="{{ profile.first_name }}" required>
@@ -60,17 +60,10 @@
                                     <input
                                         type="file"
                                         id="profile_picture_input"
+                                        name="profile_picture"
                                         accept="image/png,image/jpeg"
                                     >
                                 </div>
-                                <input
-                                    type="text"
-                                    id="profile_picture"
-                                    name="profile_picture"
-                                    class="form-control"
-                                    value="{{ profile.profile_picture|default('') }}"
-                                    readonly
-                                >
                             </div>
 
                             <div class="mb-3">
@@ -80,8 +73,9 @@
 
                             <input type="hidden" name="user_id" value="{{ profile.id }}">
                             <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
-
-                            <button type="submit" class="btn btn-primary">Actualizar datos</button>
+                            <div class="profile-submit">
+                                <button type="submit" class="btn btn-primary">Actualizar datos</button>
+                            </div>
                         </form>
                     </div>
                 </div>
@@ -90,14 +84,13 @@
     </div>
 {% endblock %}
 {% block javascript %}
-    <script src="resources/js/libs/Filepond/plugins/filepond-exif-orientation.js"></script>
-    <script src="resources/js/libs/Filepond/plugins/filepond-img-resize.js"></script>
-    <script src="resources/js/libs/Filepond/plugins/filepond-img-transform.js"></script>
-    <script src="resources/js/libs/Filepond/plugins/filepond-img-validate-size.js"></script>
+    <script src="resources/js/libs/Filepond/filepond.js"></script>
     <script src="resources/js/libs/Filepond/plugins/filepond-preview.js"></script>
     <script src="resources/js/libs/Filepond/plugins/filepond-type-validation.js"></script>
     <script src="resources/js/libs/Filepond/plugins/filepond-validate-size.js"></script>
     <script src="resources/js/libs/Filepond/plugins/filepond-crop.js"></script>
-    <script src="resources/js/libs/Filepond/filepond.js"></script>
+    <script src="resources/js/libs/Filepond/plugins/filepond-exif-orientation.js"></script>
+    <script src="resources/js/libs/Filepond/plugins/filepond-img-resize.js"></script>
+    <script src="resources/js/libs/Filepond/plugins/filepond-img-transform.js"></script>
     <script src="resources/js/modules/user/FilepondProfile.js"></script>
 {% endblock %}
