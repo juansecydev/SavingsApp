@@ -1,69 +1,55 @@
 document.addEventListener('DOMContentLoaded', () => {
     const fileInput = document.querySelector('#profile_picture_input');
-    const profilePictureField = document.querySelector('#profile_picture');
+    const csrfToken = document.querySelector('input[name="csrf_token"]');
 
     if (!fileInput) {
         return;
     }
 
-    const existingProfilePicture = profilePictureField && profilePictureField.value
-        ? profilePictureField.value
-        : null;
-
-    FilePond.registerPlugin(FilePondPluginImageCrop,
+    FilePond.registerPlugin(
         FilePondPluginFileValidateSize,
         FilePondPluginFileValidateType,
         FilePondPluginImageCrop,
         FilePondPluginImageExifOrientation,
         FilePondPluginImagePreview,
         FilePondPluginImageResize,
-        FilePondPluginImageTransform,
-        FilePondPluginImageValidateSize
+        FilePondPluginImageTransform
     );
 
-    const pond = FilePond.create(fileInput, {
+    FilePond.create(fileInput, {
         allowMultiple: false,
         allowImagePreview: true,
-        imagePreviewHeight: 220,
+        imagePreviewHeight: 170,
         imageCropAspectRatio: '1:1',
-        stylePanelLayout: 'circle',
-        styleLoadIndicatorPosition: 'center center',
-        styleProgressIndicatorPosition: 'center center',
         labelIdle: 'Arrastra tu foto o <span class="filepond--label-action">explora</span>',
-        labelFileProcessing: 'Subiendo',
-        labelFileProcessingComplete: 'Listo',
         acceptedFileTypes: ['image/png', 'image/jpeg'],
         maxFileSize: '5MB',
         allowBrowse: true,
         allowDrop: true,
         allowReplace: true,
-        allowRevert: false,
-        files: existingProfilePicture ? [{
-            source: existingProfilePicture,
-            options: {
-                type: 'local'
+        allowImageExifOrientation: true,
+        allowImageCrop: true,
+        allowProcess: true,
+        instantUpload: true,
+        server: {
+            process: {
+                url: '/api/v1/profile-picture/process',
+                method: 'POST',
+                headers: csrfToken
+                    ? {
+                        'X-CSRF-Token': csrfToken.value
+                    }
+                    : {},
+                onload: (response) => response,
+                onerror: (response) => response
             }
-        }] : []
+        },
+        imageResizeTargetWidth: 200,
+        imageResizeTargetHeight: 200,
+        stylePanelLayout: 'compact circle',
+        styleLoadIndicatorPosition: 'center bottom',
+        styleProgressIndicatorPosition: 'right bottom',
+        styleButtonRemoveItemPosition: 'left bottom',
+        styleButtonProcessItemPosition: 'right bottom',
     });
-
-    pond.on('addfile', (error, file) => {
-        if (error) {
-            console.error(error);
-            return;
-        }
-
-        if (file && file.file) {
-            profilePictureField.value = file.file.name;
-        }
-    });
-
-    pond.on('removefile', () => {
-        if (profilePictureField) {
-            profilePictureField.value = '';
-        }
-    });
-
-    if (existingProfilePicture && profilePictureField) {
-        profilePictureField.value = existingProfilePicture;
-    }
 });
