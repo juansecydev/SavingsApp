@@ -12,6 +12,7 @@ use App\Application\Actions\WelcomeAction;
 use App\Application\Actions\User\WelcomeUserAction;
 use App\Application\Actions\User\ViewProfileUserAction;
 use App\Application\Actions\User\ProfileDataUserAction;
+use App\Application\Actions\User\ProcessProfilePictureAction;
 use Psr\Http\Message\ResponseInterface as Response;
 use Psr\Http\Message\ServerRequestInterface as Request;
 use Slim\App;
@@ -30,9 +31,15 @@ return function (App $app) {
 
     // Group routes for session middleware
     $app->group('', function (Group $group) {
+
         $group->get('/welcome', WelcomeUserAction::class)->setName('welcome');
         $group->get('/profile', ViewProfileUserAction::class)->setName('profile');
         $group->post('/profile', ProfileDataUserAction::class)->setName('profile.update');
+
+        $group->group('/api/v1', function (Group $apiGroup) {
+            $apiGroup->post('/profile-picture/process', ProcessProfilePictureAction::class)
+                ->setName('profile-picture.process');
+        });
     })->add(SessionMiddleware::class);
 
     $app->group('/users', function (Group $group) {
