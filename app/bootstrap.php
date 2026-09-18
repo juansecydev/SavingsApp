@@ -8,12 +8,13 @@ use Psr\Container\ContainerInterface;
 return function (ContainerInterface $container): void {
     $settings = $container->get(SettingsInterface::class);
 
-    define('APP_ROOT_PATH', dirname(__DIR__) . '/');
-    define('APP_PUBLIC_PATH', APP_ROOT_PATH . 'public/');
-    define('APP_LOG_PATH', APP_ROOT_PATH . 'logs/');
-    define('STORAGE_PATH', $settings->get('storage_path') ?? (APP_ROOT_PATH . 'storage/'));
-    define('TEMPLATES_PATH', APP_ROOT_PATH . 'templates/');
-
+    define('APP_ROOT_PATH', dirname(__DIR__) . DIRECTORY_SEPARATOR);
+    define('APP_PUBLIC_PATH', APP_ROOT_PATH . 'public' . DIRECTORY_SEPARATOR);
+    define('APP_LOG_PATH', APP_ROOT_PATH . 'logs' . DIRECTORY_SEPARATOR);
+    define('STORAGE_PATH', APP_ROOT_PATH . 'storage' . DIRECTORY_SEPARATOR);
+    define('STORAGE_TMP_PATH', STORAGE_PATH . 'tmp' . DIRECTORY_SEPARATOR);
+    define('TEMPLATES_PATH', APP_ROOT_PATH . 'templates' . DIRECTORY_SEPARATOR);
+    define('STORAGE_USERS_PFP_PATH', STORAGE_PATH . 'users' . DIRECTORY_SEPARATOR . 'pfp' . DIRECTORY_SEPARATOR);
     if (!is_dir(APP_LOG_PATH)) {
         mkdir(APP_LOG_PATH, 0755, true);
     }
