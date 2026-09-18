@@ -71,7 +71,9 @@ class ProcessProfilePictureAction extends Action
                 self::MAXIMUM_SIZE
             );
 
-            $storedFilename = $this->createStoredFilename($file->getMimeType());
+            $mimeType = $file->getMimeType();
+            $fileSize = $file->getSize();
+            $storedFilename = $this->createStoredFilename($mimeType);
             $storedPath = STORAGE_USERS_PFP_PATH . $storedFilename;
 
             if (!rename($stagingPath, $storedPath)) {
@@ -83,8 +85,8 @@ class ProcessProfilePictureAction extends Action
             $uploads = is_array($uploads) ? $uploads : [];
             $uploads[$uploadId] = [
                 'path' => $storedPath,
-                'mime_type' => $file->getMimeType(),
-                'size' => $file->getSize(),
+                'mime_type' => $mimeType,
+                'size' => $fileSize,
             ];
             Session::setData(self::SESSION_KEY, $uploads);
 
