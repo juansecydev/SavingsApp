@@ -10,6 +10,7 @@ class Session
     public const SESSION_KEY = 'user_id';
     private const COOKIE_SAMESITE = 'Strict';
     public const CSRF_TOKEN_KEY = 'csrf_token';
+    public const IMG_DATA_KEY = 'profile_picture_uploads';
 
     public static function startSession(): void
     {
