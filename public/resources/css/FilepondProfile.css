@@ -19,8 +19,24 @@
 
 .profile-picture-upload .filepond--drop-label {
     border-radius: 50%;
+    text-align: center;
 }
 
 .profile-picture-upload .filepond--drop-label label {
+    width: 70%;
+    padding: 1rem;
     cursor: pointer;
+    line-height: 1.35;
+    text-align: center;
+    white-space: normal;
+}
+
+.profile-picture-upload .filepond--label-action {
+    display: block;
+    margin-top: 0.25rem;
+}
+
+.profile-submit {
+    display: flex;
+    justify-content: center;
 }
