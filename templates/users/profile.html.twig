@@ -62,6 +62,7 @@
                                         id="profile_picture_input"
                                         name="profile_picture"
                                         accept="image/png,image/jpeg"
+                                        data-profile-picture-url="{{ url_for('profile-picture.show', {'id': profile.profile_picture}) }}"
                                     >
                                 </div>
                             </div>
