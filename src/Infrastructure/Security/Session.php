@@ -64,7 +64,10 @@ class Session
         $_SESSION['user_last_name'] = $user->getLastName();
         $_SESSION['user_email'] = $user->getEmail();
         $_SESSION['user_role_id'] = $user->getRoleId();
-        $_SESSION['user_profile_picture'] = $user->getProfilePicture();
+        $_SESSION['user_profile_picture'] = [
+            'id' =>  is_null($user->getProfilePicture()) ?  'default' : bin2hex(random_bytes(16)), 
+            'path' => is_null($user->getProfilePicture()) ? STORAGE_USERS_PFP_PATH . 'default.png' : $user->getProfilePicture(),
+        ];
         $_SESSION['user_is_admin'] = $user->isAdmin();
         $_SESSION['session_created_at'] = time();
         $_SESSION['session_last_activity'] = time();
