@@ -8,6 +8,7 @@ use InvalidArgumentException;
 use Psr\Http\Message\UploadedFileInterface;
 use RuntimeException;
 use Throwable;
+use App\Infrastructure\Files\FileValidationException;
 
 /**
  * Moves, validates, and stores profile-picture uploads temporarily.
@@ -54,17 +55,17 @@ class ProfilePictureUploadService
 
             $mimeType = $file->getMimeType();
             $fileSize = $file->getSize();
-            $storedPath = STORAGE_USERS_PFP_PATH
+            /* $storedPath = STORAGE_USERS_PFP_PATH
                 . bin2hex(random_bytes(16))
                 . '.'
-                . $this->extensionForMimeType($mimeType);
+            . $this->extensionForMimeType($mimeType);
 
             if (!rename($stagingPath, $storedPath)) {
                 throw new RuntimeException('The profile picture could not be stored.');
-            }
+            } */
 
             return [
-                'path' => $storedPath,
+                'path' => $file->getRealPath(),
                 'mime_type' => $mimeType,
                 'size' => $fileSize,
             ];
