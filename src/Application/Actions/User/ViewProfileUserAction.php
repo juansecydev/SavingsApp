@@ -22,6 +22,11 @@ class ViewProfileUserAction extends TwigAction
     protected function action(): Response
     {
         $user = $this->request->getAttribute('user');
+        $sessionPicture = Session::getData('user_profile_picture');
+        $profilePictureId = is_array($sessionPicture)
+            && is_string($sessionPicture['id'] ?? null)
+            ? $sessionPicture['id']
+            : 'default';
 
         return $this->renderView('users/profile.html.twig', [
             'profile' => [
@@ -29,7 +34,7 @@ class ViewProfileUserAction extends TwigAction
                 'first_name' => $user->getFirstName(),
                 'last_name' => $user->getLastName(),
                 'email' => $user->getEmail(),
-                'profile_picture' => Session::getData('user_profile_picture')['id'],
+                'profile_picture' => $profilePictureId,
                 'role_name' => $user->getRoleName(),
             ],
             'csrf_token' => CSRFValidator::getCSRFToken(),
