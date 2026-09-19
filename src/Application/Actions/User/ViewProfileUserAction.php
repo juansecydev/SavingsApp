@@ -6,6 +6,7 @@ namespace App\Application\Actions\User;
 
 use App\Application\Actions\TwigAction;
 use App\Infrastructure\Security\CSRFValidator;
+use App\Infrastructure\Security\Session;
 use Psr\Http\Message\ResponseInterface as Response;
 
 /**
@@ -28,7 +29,7 @@ class ViewProfileUserAction extends TwigAction
                 'first_name' => $user->getFirstName(),
                 'last_name' => $user->getLastName(),
                 'email' => $user->getEmail(),
-                'profile_picture' => $user->getProfilePicture(),
+                'profile_picture' => Session::getData('user_profile_picture')['id'],
                 'role_name' => $user->getRoleName(),
             ],
             'csrf_token' => CSRFValidator::getCSRFToken(),
