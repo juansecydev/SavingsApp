@@ -1,10 +1,25 @@
 document.addEventListener('DOMContentLoaded', () => {
     const fileInput = document.querySelector('#profile_picture_input');
     const csrfToken = document.querySelector('input[name="csrf_token"]');
+    const toastElement = document.querySelector('#profile-picture-toast');
+    const toastTitle = document.querySelector('#profile-picture-toast-title');
+    const toastMessage = document.querySelector('#profile-picture-toast-message');
 
-    if (!fileInput) {
+    if (!fileInput || !toastElement || !toastTitle || !toastMessage) {
         return;
     }
+
+    const showToast = (title, message, type) => {
+        toastElement.classList.remove('text-bg-success', 'text-bg-danger', 'text-bg-warning');
+        toastElement.classList.add(`text-bg-${type}`);
+        toastTitle.textContent = title;
+        toastMessage.textContent = message;
+
+        bootstrap.Toast.getOrCreateInstance(toastElement, {
+            autohide: true,
+            delay: 4000
+        }).show();
+    };
 
     FilePond.registerPlugin(
         FilePondPluginFileValidateSize,
@@ -16,7 +31,7 @@ document.addEventListener('DOMContentLoaded', () => {
         FilePondPluginImageTransform
     );
 
-    FilePond.create(fileInput, {
+    const pond = FilePond.create(fileInput, {
         allowMultiple: false,
         allowImagePreview: true,
         imagePreviewHeight: 170,
@@ -51,5 +66,36 @@ document.addEventListener('DOMContentLoaded', () => {
         styleProgressIndicatorPosition: 'right bottom',
         styleButtonRemoveItemPosition: 'left bottom',
         styleButtonProcessItemPosition: 'right bottom',
+    });
+
+    pond.on('addfile', (error, file) => {
+        if (error) {
+            showToast('Error', error.main || 'No se pudo preparar la imagen.', 'danger');
+            return;
+        }
+
+        showToast(
+            'Imagen lista',
+            `La imagen tiene una vista previa y está lista para subir.`,
+            'success'
+        );
+    });
+
+    pond.on('removefile', (error) => {
+        if (error) {
+            showToast('Error', 'No se pudo eliminar la imagen.', 'danger');
+            return;
+        }
+
+        showToast('Imagen eliminada', 'La imagen fue eliminada.', 'warning');
+    });
+
+    pond.on('processfile', (error, file) => {
+        if (error) {
+            showToast('Error al subir', error.main || 'No se pudo subir la imagen.', 'danger');
+            return;
+        }
+
+        showToast('Carga exitosa', `Para confirmar, presiona el botón de actualizar datos.`, 'success');
     });
 });
