@@ -1,5 +1,6 @@
 document.addEventListener('DOMContentLoaded', () => {
     const fileInput = document.querySelector('#profile_picture_input');
+    const profilePictureUrl = fileInput?.dataset.profilePictureUrl;
     const csrfToken = document.querySelector('input[name="csrf_token"]');
     const toastElement = document.querySelector('#profile-picture-toast');
     const toastTitle = document.querySelector('#profile-picture-toast-title');
@@ -44,8 +45,14 @@ document.addEventListener('DOMContentLoaded', () => {
         allowReplace: true,
         allowImageExifOrientation: true,
         allowImageCrop: true,
+        files: profilePictureUrl
+            ? [{
+                source: profilePictureUrl,
+                options: { type: 'remote' }
+            }]
+            : [],
         allowProcess: true,
-        instantUpload: true,
+        instantUpload: false,
         server: {
             process: {
                 url: '/api/v1/profile-picture/process',
@@ -71,6 +78,13 @@ document.addEventListener('DOMContentLoaded', () => {
     pond.on('addfile', (error, file) => {
         if (error) {
             showToast('Error', error.main || 'No se pudo preparar la imagen.', 'danger');
+            return;
+        }
+
+        const isInitialProfilePicture = profilePictureUrl
+            && (file.source === profilePictureUrl || file.origin === FilePond.FileOrigin.LOCAL);
+
+        if (isInitialProfilePicture) {
             return;
         }
 
