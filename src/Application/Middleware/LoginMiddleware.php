@@ -8,6 +8,7 @@ use App\Application\Services\LoginService;
 use App\Infrastructure\Http\Sanitizer;
 use App\Infrastructure\Http\Validator;
 use App\Infrastructure\Security\CSRFValidator;
+use App\Infrastructure\Security\Session;
 use Psr\Http\Message\ResponseInterface as Response;
 use Psr\Http\Message\ServerRequestInterface as Request;
 use Psr\Http\Server\MiddlewareInterface;
@@ -25,6 +26,18 @@ class LoginMiddleware implements MiddlewareInterface
 
     public function process(Request $request, RequestHandler $handler): Response
     {
+        if(strtoupper($request->getMethod()) === 'GET' && Session::validateSession()){
+            $response = $this->responseFactory->createResponse(302);
+            return $response->withHeader('Location', '/welcome');
+        }
+
+        if (strtoupper($request->getMethod()) === 'GET') {
+            return $this->twig->render($this->responseFactory->createResponse(), 'login.html.twig', [
+                'title' => 'Error al iniciar sesión',
+                'csrf_token' => CSRFValidator::getCSRFToken(),
+            ]);
+        }
+
         $formData = $request->getParsedBody();
         $formData = is_array($formData) ? $formData : [];
         $credentials = Sanitizer::batch($formData, [

@@ -27,7 +27,7 @@ return function (App $app) {
     });
 
     $app->get('/', WelcomeAction::class);
-    $app->get('/login', ViewLoginAction::class)->setName('login');
+    $app->get('/login', ViewLoginAction::class)->setName('login')->add(LoginMiddleware::class);
     $app->post('/login', LoginAction::class)->add(LoginMiddleware::class);
     $app->post('/logout', LogoutAction::class)->setName('logout');
 
