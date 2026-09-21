@@ -5,6 +5,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const toastElement = document.querySelector('#profile-picture-toast');
     const toastTitle = document.querySelector('#profile-picture-toast-title');
     const toastMessage = document.querySelector('#profile-picture-toast-message');
+    let imageId = fileInput?.dataset.profilePictureId;
 
     if (!fileInput || !toastElement || !toastTitle || !toastMessage) {
         return;
@@ -57,13 +58,16 @@ document.addEventListener('DOMContentLoaded', () => {
             process: {
                 url: '/api/v1/profile-picture/process',
                 method: 'POST',
-                headers: csrfToken
-                    ? {
-                        'X-CSRF-Token': csrfToken.value
+                headers: () => {
+                    return {
+                        'X-CSRF-Token': csrfToken.value,
+                        'X-Profile-Picture-Id': imageId,
                     }
-                    : {},
-                onload: (response) => response,
-                onerror: (response) => response
+                },
+                onload: (response) => {
+                    document.getElementById('profile_picture_id').value = response;
+                },
+                onerror: (response) => response,
             }
         },
         imageResizeTargetWidth: 200,
@@ -88,6 +92,8 @@ document.addEventListener('DOMContentLoaded', () => {
             return;
         }
 
+        imageId = 'added';
+
         showToast(
             'Imagen lista',
             `La imagen tiene una vista previa y está lista para subir.`,
@@ -101,12 +107,14 @@ document.addEventListener('DOMContentLoaded', () => {
             return;
         }
 
+        imageId = null;
         showToast('Imagen eliminada', 'La imagen fue eliminada.', 'warning');
     });
 
     pond.on('processfile', (error, file) => {
+
         if (error) {
-            showToast('Error al subir', error.main || 'No se pudo subir la imagen.', 'danger');
+            showToast('Error al subir', error.body || 'No se pudo subir la imagen.', 'danger');
             return;
         }
 
