@@ -19,8 +19,6 @@ use Throwable;
  */
 class ProcessProfilePictureAction extends Action
 {
-    private const SESSION_KEY = 'profile_picture_uploads';
-
     public function __construct(
         LoggerInterface $logger,
         private ProfilePictureUploadService $uploadService
@@ -53,10 +51,10 @@ class ProcessProfilePictureAction extends Action
         try {
             $storedFile = $this->uploadService->process($uploadedFile);
             $uploadId = bin2hex(random_bytes(16));
-            $uploads = Session::getData(self::SESSION_KEY);
+            $uploads = Session::getData(Session::IMG_DATA_KEY);
             $uploads = is_array($uploads) ? $uploads : [];
             $uploads[$uploadId] = $storedFile;
-            Session::setData(self::SESSION_KEY, $uploads);
+            Session::setData(Session::IMG_DATA_KEY, $uploads);
 
             $this->response->getBody()->write($uploadId);
 
