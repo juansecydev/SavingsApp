@@ -22,6 +22,7 @@ class ViewProfileUserAction extends TwigAction
     protected function action(): Response
     {
         $user = $this->request->getAttribute('user');
+        Session::setData(Session::IMG_DATA_KEY, []);
         $sessionPicture = Session::getData('user_profile_picture');
         $profilePictureId = is_array($sessionPicture)
             && is_string($sessionPicture['id'] ?? null)
