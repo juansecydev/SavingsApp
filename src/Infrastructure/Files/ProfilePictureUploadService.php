@@ -11,7 +11,7 @@ use Throwable;
 use App\Infrastructure\Files\FileValidationException;
 
 /**
- * Moves, validates, and stores profile-picture uploads temporarily.
+ * Validates profile-picture uploads before temporary and permanent storage.
  */
 class ProfilePictureUploadService
 {
@@ -26,8 +26,9 @@ class ProfilePictureUploadService
     /**
      * Process one uploaded profile picture.
      *
-     * The validated file is moved from storage/tmp to storage/users/pfp with
-     * a random name. The returned paths are absolute filesystem paths.
+     * The validated file is moved into STORAGE_TMP_PATH with a random name.
+     * The returned path is an absolute filesystem path stored temporarily in
+     * the session until the profile form is submitted.
      *
      * @param UploadedFileInterface $uploadedFile Uploaded profile picture.
      * @return array{path: string, mime_type: string, size: int} Stored file data.
@@ -55,15 +56,6 @@ class ProfilePictureUploadService
 
             $mimeType = $file->getMimeType();
             $fileSize = $file->getSize();
-            /* $storedPath = STORAGE_USERS_PFP_PATH
-                . bin2hex(random_bytes(16))
-                . '.'
-            . $this->extensionForMimeType($mimeType);
-
-            if (!rename($stagingPath, $storedPath)) {
-                throw new RuntimeException('The profile picture could not be stored.');
-            } */
-
             return [
                 'path' => $file->getRealPath(),
                 'mime_type' => $mimeType,
@@ -79,6 +71,55 @@ class ProfilePictureUploadService
     }
 
     /**
+     * Move a session-owned temporary upload to permanent profile-picture storage.
+     *
+     * The upload is validated again and must resolve inside STORAGE_TMP_PATH.
+     * Its existing safe filename is preserved, while the returned path is relative
+     * to STORAGE_PATH so it can be stored in the database.
+     *
+     * @param array{path: mixed, mime_type?: mixed, size?: mixed} $upload Temporary upload data stored in the session.
+     * @return string Relative path in the form users/pfp/<filename>.
+     * @throws FileValidationException When the temporary file no longer meets the image rules.
+     * @throws InvalidArgumentException When the temporary upload is invalid or outside temporary storage.
+     * @throws RuntimeException When the file cannot be moved to permanent storage.
+     */
+    public function storeTemporaryUpload(array $upload): string
+    {
+        $temporaryPath = $upload['path'] ?? null;
+        if (!is_string($temporaryPath) || $temporaryPath === '') {
+            throw new InvalidArgumentException('The temporary profile picture is invalid.');
+        }
+
+        $temporaryDirectory = realpath(STORAGE_TMP_PATH);
+        $resolvedTemporaryPath = realpath($temporaryPath);
+        if ($temporaryDirectory === false || $resolvedTemporaryPath === false) {
+            throw new InvalidArgumentException('The temporary profile picture is unavailable.');
+        }
+
+        $temporaryDirectory .= DIRECTORY_SEPARATOR;
+        if (strpos($resolvedTemporaryPath, $temporaryDirectory) !== 0) {
+            throw new InvalidArgumentException('The temporary profile picture is outside temporary storage.');
+        }
+
+        $this->assertWritableDirectory(STORAGE_USERS_PFP_PATH);
+
+        $file = new File($resolvedTemporaryPath);
+        $file->validate(
+            self::ALLOWED_MIME_TYPES,
+            self::ALLOWED_EXTENSIONS,
+            self::MAXIMUM_SIZE
+        );
+
+        $filename = $file->getName();
+        $permanentPath = STORAGE_USERS_PFP_PATH . $filename;
+        if (!rename($resolvedTemporaryPath, $permanentPath)) {
+            throw new RuntimeException('The profile picture could not be moved to permanent storage.');
+        }
+
+        return 'users/pfp/' . $filename;
+    }
+
+    /**
      * Verify that a directory exists and can receive uploads.
      *
      * @param string $directory Directory path to verify.
@@ -90,27 +131,6 @@ class ProfilePictureUploadService
         if (!is_dir($directory) || !is_writable($directory)) {
             throw new InvalidArgumentException('The profile picture storage directory is not writable.');
         }
-    }
-
-    /**
-     * Resolve a validated MIME type to its stored extension.
-     *
-     * @param string $mimeType Validated MIME type.
-     * @return string Safe file extension.
-     * @throws FileValidationException When the MIME type is unsupported.
-     */
-    private function extensionForMimeType(string $mimeType): string
-    {
-        $extensions = [
-            'image/jpeg' => 'jpg',
-            'image/png' => 'png',
-        ];
-
-        if (!isset($extensions[$mimeType])) {
-            throw new FileValidationException('The profile picture MIME type is not allowed.');
-        }
-
-        return $extensions[$mimeType];
     }
 
     /**
