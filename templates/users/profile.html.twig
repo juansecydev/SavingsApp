@@ -38,6 +38,13 @@
                             <div class="alert alert-success" role="alert">{{ success }}</div>
                         {% endif %}
 
+                        {% if info is defined and info %}
+                            <div class="alert alert-info d-flex align-items-center" role="status">
+                                <i class="bi bi-info-circle me-2" aria-hidden="true"></i>
+                                <span>{{ info }}</span>
+                            </div>
+                        {% endif %}
+
                         <form method="post" action="{{ url_for('profile.update') }}" enctype="multipart/form-data">
                             <div class="mb-3">
                                 <label for="first_name" class="form-label">Nombres</label>
@@ -65,7 +72,7 @@
                                         data-profile-picture-url="{{ url_for('profile-picture.show', {'id': profile.profile_picture}) }}"
                                         data-profile-picture-id="{{ profile.profile_picture }}"
                                     >
-                                    <input type="hidden" name="profile_picture_id" id="profile_picture_id">
+                                    <input type="hidden" name="profile_picture_id" id="profile_picture_id" value="{{ profile.profile_picture }}">
                                 </div>
                             </div>
 
