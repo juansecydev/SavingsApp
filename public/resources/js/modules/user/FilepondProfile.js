@@ -1,3 +1,5 @@
+"use strict";
+
 document.addEventListener('DOMContentLoaded', () => {
     const fileInput = document.querySelector('#profile_picture_input');
     const profilePictureUrl = fileInput?.dataset.profilePictureUrl;
@@ -5,9 +7,10 @@ document.addEventListener('DOMContentLoaded', () => {
     const toastElement = document.querySelector('#profile-picture-toast');
     const toastTitle = document.querySelector('#profile-picture-toast-title');
     const toastMessage = document.querySelector('#profile-picture-toast-message');
+    const imgIdInput = document.getElementById('profile_picture_id');
     let imageId = fileInput?.dataset.profilePictureId;
 
-    if (!fileInput || !toastElement || !toastTitle || !toastMessage) {
+    if (!fileInput || !csrfToken || !imgIdInput || !toastElement || !toastTitle || !toastMessage) {
         return;
     }
 
@@ -65,13 +68,21 @@ document.addEventListener('DOMContentLoaded', () => {
                     }
                 },
                 onload: (response) => {
-                    document.getElementById('profile_picture_id').value = response;
+                    const uploadId = typeof response === 'string' ? response.trim() : '';
+                    if (uploadId === '') {
+                        showToast('Error al subir', 'El servidor no devolvió un identificador de imagen.', 'danger');
+                        return '';
+                    }
+
+                    imgIdInput.value = uploadId;
+                    return uploadId;
                 },
                 onerror: (response) => response,
             }
         },
-        imageResizeTargetWidth: 200,
-        imageResizeTargetHeight: 200,
+        imageResizeTargetWidth: 400,
+        imageResizeTargetHeight: 400,
+        imageTransformOutputQuality: 95,
         stylePanelLayout: 'compact circle',
         styleLoadIndicatorPosition: 'center bottom',
         styleProgressIndicatorPosition: 'right bottom',
@@ -108,7 +119,8 @@ document.addEventListener('DOMContentLoaded', () => {
         }
 
         imageId = null;
-        showToast('Imagen eliminada', 'La imagen fue eliminada.', 'warning');
+        imgIdInput.value = 'removed';
+        showToast('Imagen eliminada', 'La imagen fue eliminada, para confirmar haz click en el botón de actualizar datos o sube una nueva foto.', 'warning');
     });
 
     pond.on('processfile', (error, file) => {
