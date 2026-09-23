@@ -58,12 +58,11 @@ class Session
 
         $_SESSION[self::SESSION_KEY] = $user->getId();
         $_SESSION['user_id'] = $user->getId();
-        $_SESSION['user_version_id'] = $user->getVersionId();
-        $_SESSION['user_version_number'] = $user->getVersionNumber();
         $_SESSION['user_first_name'] = $user->getFirstName();
         $_SESSION['user_last_name'] = $user->getLastName();
         $_SESSION['user_email'] = $user->getEmail();
         $_SESSION['user_role_id'] = $user->getRoleId();
+        $_SESSION['user_role_name'] = $user->getRoleName();
         $_SESSION['user_profile_picture'] = [
             'id' =>  is_null($user->getProfilePicture()) ?  'default' : bin2hex(random_bytes(16)), 
             'path' => is_null($user->getProfilePicture()) ? STORAGE_USERS_PFP_PATH . 'default.png' : $user->getProfilePicture(),
@@ -158,5 +157,20 @@ class Session
         $ip = $_SERVER['REMOTE_ADDR'] ?? '';
 
         return hash('sha256', $ua . '|' . $ip);
+    }
+
+    public static function getUserAsModel() : ?User{
+
+        self::startSession();
+        return new User(
+            $_SESSION['user_id'],
+            $_SESSION['user_first_name'],
+            $_SESSION['user_last_name'],
+            $_SESSION['user_email'],
+            '',
+            $_SESSION['user_profile_picture']['path'],
+            $_SESSION['user_role_id'],
+            $_SESSION['user_role_name'],
+        );
     }
 }
