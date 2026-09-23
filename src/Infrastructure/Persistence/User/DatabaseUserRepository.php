@@ -16,8 +16,7 @@ class DatabaseUserRepository implements UserRepository
     public function findAll(): array
     {
         $rows = $this->queryBuilder->ownQuery(
-            'SELECT user_version_user_id, user_version_names, user_version_last_names, '
-            . 'user_version_email FROM user_version ORDER BY user_version_user_id',
+            'SELECT user_id, user_names, user_last_names, user_email FROM users ORDER BY user_id;',
         );
 
         if ($rows === false) {
@@ -30,13 +29,11 @@ class DatabaseUserRepository implements UserRepository
     public function findUserById(int $id): User
     {
         $rows = $this->queryBuilder->ownQuery(
-            'SELECT user_version_user_id, user_version_names, user_version_last_names, user_version_id, user_version_number,
-                user_version_email, user_version_password, user_version_profile_picture, user_version_role_id,
-                user_version_role_id, user_version_role_id, user_version_number, role_name
-            FROM user_version uv
-            INNER JOIN users u ON uv.user_version_user_id = u.user_id AND uv.user_version_number = u.user_current_version_number
-            INNER JOIN role r ON uv.user_version_role_id = r.role_id
-            WHERE u.user_id = :id LIMIT 1',
+            'SELECT
+                user_id, user_names, user_last_names, user_id, user_email, user_password, user_profile_picture, user_role_id, role_name
+            FROM users u
+            INNER JOIN roles r ON u.user_role_id = r.role_id
+            WHERE u.user_id = :id LIMIT 1;',
             ['id' => $id],
         );
 
@@ -51,14 +48,11 @@ class DatabaseUserRepository implements UserRepository
     {
         $rows = $this->queryBuilder->ownQuery(
             'SELECT 
-                user_version_user_id, user_version_names, user_version_last_names, user_version_id, user_version_number,
-                user_version_email, user_version_password, user_version_profile_picture, user_version_role_id,
-                user_version_role_id, user_version_role_id, user_version_number, role_name
-            FROM user_version uv
-            INNER JOIN users u ON uv.user_version_user_id = u.user_id AND uv.user_version_number = u.user_current_version_number
-            INNER JOIN role r ON uv.user_version_role_id = r.role_id
-            WHERE user_version_email = :email 
-            LIMIT 1',
+                user_id, user_names, user_last_names, user_id, user_email, user_password, user_profile_picture, user_role_id, role_name
+            FROM users u
+            INNER JOIN roles r ON u.user_role_id = r.role_id
+            WHERE user_email = :email
+            LIMIT 1;',
             ['email' => $email],
         );
 
@@ -69,19 +63,70 @@ class DatabaseUserRepository implements UserRepository
         return $this->mapUser($rows[0]);
     }
 
+    /**
+     * Update the editable fields in a user record and mark the user as updated.
+     *
+     * When requested, the supplied relative profile-picture path is also saved; otherwise
+     * the existing picture column is left unchanged. The database's unique email constraint
+     * is enforced by the prepared update query.
+     *
+     * @param User $user Authenticated user whose profile is updated.
+     * @param string $firstName Sanitized, non-empty first name.
+     * @param string $lastName Sanitized, non-empty last name.
+     * @param string $email Sanitized, valid and unique email address.
+     * @param string|null $profilePicture Relative profile-picture path, or null when it is removed.
+     * @param bool $updateProfilePicture Whether the profile-picture column must be changed.
+     * @return User|null The refreshed user when both writes succeed, or null when they fail.
+     */
+    public function updateProfile(
+        User $user,
+        string $firstName,
+        string $lastName,
+        string $email,
+        ?string $profilePicture,
+        bool $updateProfilePicture
+    ): ?User {
+        $assignments = [
+            'user_names = :first_name',
+            'user_last_names = :last_name',
+            'user_email = :email',
+        ];
+        $parameters = [
+            'first_name' => $firstName,
+            'last_name' => $lastName,
+            'email' => $email,
+            'user_id' => $user->getId(),
+        ];
+
+        if ($updateProfilePicture) {
+            $assignments[] = 'user_profile_picture = :profile_picture';
+            $parameters['profile_picture'] = $profilePicture;
+        }
+
+        $assignments[] = 'user_updated_at = CURRENT_TIMESTAMP';
+        $profileUpdated = $this->queryBuilder->ownQuery(
+            'UPDATE users SET ' . implode(', ', $assignments) . ' WHERE user_id = :user_id',
+            $parameters, true
+        );
+
+        if ($profileUpdated === false || $user->getId() === null) {
+            return null;
+        }
+
+        return $this->findUserById($user->getId());
+    }
+
     /** @param array<string, mixed> $row */
     private function mapUser(array $row): User
     {
         return new User(
-            (int) $row['user_version_user_id'],
-            (int) $row['user_version_id'],
-            $row['user_version_names'],
-            $row['user_version_last_names'],
-            $row['user_version_email'],
-            $row['user_version_password'],
-            $row['user_version_profile_picture'] ?? null,
-            (int) $row['user_version_role_id'],
-            (int) $row['user_version_number'],
+            (int) $row['user_id'],
+            $row['user_names'],
+            $row['user_last_names'],
+            $row['user_email'],
+            $row['user_password'],
+            $row['user_profile_picture'] ?? null,
+            (int) $row['user_role_id'],
             $row['role_name'] ?? null
         );
     }
