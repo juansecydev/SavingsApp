@@ -70,10 +70,10 @@ class QueryBuilder
      *
      * @param string $tableName Table to read.
      * @param string $primaryKey Column used for filtering.
-     * @param string $id Value matched against the primary key.
+     * @param string|int $id Value matched against the primary key.
      * @return array<string, mixed>|false A row, an empty array when not found, or false on error.
      */
-    public function selectOne(string $tableName, string $primaryKey, string $id): array|false
+    public function selectOne(string $tableName, string $primaryKey, string|int $id): array|false
     {
         $rows = $this->fetchRows(
             sprintf(
@@ -92,7 +92,7 @@ class QueryBuilder
      *
      * @param string $tableName Table to modify.
      * @param string $primaryKey Column used for filtering.
-     * @param string $id Value matched against the primary key.
+     * @param string|int $id Value matched against the primary key.
      * @param array<string, mixed> $properties Columns mapped to replacement values.
      * @param bool $asTransaction Start and finish a transaction for this operation.
      * @return bool True when the statement executes, otherwise false.
@@ -100,7 +100,7 @@ class QueryBuilder
     public function updateOne(
         string $tableName,
         string $primaryKey,
-        string $id,
+        string|int $id,
         array $properties,
         bool $asTransaction = true
     ): bool {
@@ -127,14 +127,14 @@ class QueryBuilder
      *
      * @param string $tableName Table to modify.
      * @param string $primaryKey Column used for filtering.
-     * @param string $id Value matched against the primary key.
+     * @param string|int $id Value matched against the primary key.
      * @param bool $asTransaction Start and finish a transaction for this operation.
      * @return bool True when the statement executes, otherwise false.
      */
     public function deleteOne(
         string $tableName,
         string $primaryKey,
-        string $id,
+        string|int $id,
         bool $asTransaction = true
     ): bool {
         $query = sprintf(
@@ -153,18 +153,26 @@ class QueryBuilder
      *
      * @param string $query SQL statement, optionally containing placeholders.
      * @param array<int|string, mixed> $values Positional or named placeholder values.
+     * @param bool $asTransaction indicate if the own query must be executed as a transaction.
      * @return array<int, array<string, mixed>>|bool Rows for SELECT, true for writes, or false on error.
      */
-    public function ownQuery(string $query, array $values = []): array|bool
+    public function ownQuery(string $query, array $values = [], bool $asTransaction = false): array|bool
     {
         try {
-            $this->logSqlQuery($query, $values);
-            $statement = $this->connection->prepare($query);
-            $statement->execute($values);
 
-            return preg_match('/^\s*SELECT\b/i', $query) === 1
-                ? $statement->fetchAll(PDO::FETCH_ASSOC)
-                : true;
+            if($asTransaction){
+                return $this->executeWrite($query, $values, $asTransaction);
+            }else{
+
+                $this->logSqlQuery($query, $values);
+                $statement = $this->connection->prepare($query);
+                $statement->execute($values);
+                return preg_match('/^\s*SELECT\b/i', $query) === 1
+                    ? $statement->fetchAll(PDO::FETCH_ASSOC)
+                    : true;
+            }
+            
+
         } catch (Throwable $error) {
             $this->logSqlError($error, $query, $values);
             return false;
