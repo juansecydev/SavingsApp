@@ -14,3 +14,4 @@ public/resources/bootstrap/
 /storage/
 liquibase.properties
 /liquibase/mysql/docs/
+liquibase/mysql/changelog/changelog-master-old_version.sql
