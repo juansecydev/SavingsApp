@@ -10,8 +10,6 @@ class User implements JsonSerializable
 {
     private int $id;
 
-    private int $versionId;
-
     private string $username;
 
     private string $firstName;
@@ -22,8 +20,6 @@ class User implements JsonSerializable
 
     private ?string $passwordHash;
 
-    private int $versionNumber;
-
     private ?string $profilePicture;
 
     private int $roleId;
@@ -32,25 +28,21 @@ class User implements JsonSerializable
 
     public function __construct(
         int $id,
-        int $versionId,
         string $firstName,
         string $lastName,
         string $email,
         string $passwordHash,
         ?string $profilePicture,
         int $roleId,
-        int $versionNumber,
         ?string $roleName = null
     ) {
         $this->id = $id;
-        $this->versionId = $versionId;
         $this->firstName = ucfirst($firstName);
         $this->lastName = ucfirst($lastName);
         $this->email = strtolower($email);
         $this->passwordHash = $passwordHash;
         $this->profilePicture = $profilePicture;
         $this->roleId = $roleId;
-        $this->versionNumber = $versionNumber;
         $this->roleName = $roleName;
     }
 
@@ -89,11 +81,6 @@ class User implements JsonSerializable
         return $this->passwordHash;
     }
 
-    public function getVersionNumber(): int
-    {
-        return $this->versionNumber;
-    }
-
     public function getProfilePicture(): ?string
     {
         return $this->profilePicture;
@@ -129,21 +116,6 @@ class User implements JsonSerializable
         $this->roleId = $roleId;
     }
 
-    public function setVersionNumber(int $versionNumber): void
-    {
-        $this->versionNumber = $versionNumber;
-    }
-
-    public function setVersionId(int $versionId): void
-    {
-        $this->versionId = $versionId;
-    }
-
-    public function getVersionId(): int
-    {
-        return $this->versionId;
-    }
-
     #[\ReturnTypeWillChange]
     public function jsonSerialize(): array
     {
@@ -153,8 +125,6 @@ class User implements JsonSerializable
             'firstName' => $this->firstName,
             'lastName' => $this->lastName,
             'email' => $this->email,
-            'versionId' => $this->versionId,
-            'versionNumber' => $this->versionNumber,
             'profilePicture' => $this->profilePicture,
             'roleId' => $this->roleId,
         ];
