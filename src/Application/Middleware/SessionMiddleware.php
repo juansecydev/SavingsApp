@@ -27,7 +27,8 @@ class SessionMiddleware implements Middleware
             return $response->withHeader('Location', '/login')->withStatus(302);
         }
 
-        $user = $this->userRepository->findUserById(Session::getData(Session::SESSION_KEY));
+        //$user = $this->userRepository->findUserById(Session::getData(Session::SESSION_KEY));
+        $user = Session::getUserAsModel();
 
         if ($user === null) {
             Session::logout();
