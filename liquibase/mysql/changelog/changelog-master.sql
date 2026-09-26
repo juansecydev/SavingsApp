@@ -14,7 +14,7 @@ CREATE TABLE `currencies` (
   `currency_name` VARCHAR(50) NOT NULL,
   `currency_code` VARCHAR(3) NOT NULL,
   `currency_symbol` VARCHAR(2) NOT NULL,
-  `currency_decimals` TINYINT UNSIGNED NOT NULL,
+  `currency_minor_units` TINYINT UNSIGNED NOT NULL,
   `currency_created_at` TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
   PRIMARY KEY (`currency_id`),
   UNIQUE KEY `uq_currency_name` (`currency_name`),
@@ -84,7 +84,7 @@ CREATE TABLE `account_transactions` (
 
 INSERT INTO `roles` (`role_name`) VALUES ('Administrator'), ('Normal');
 
-INSERT INTO `currencies` (`currency_name`, `currency_code`, `currency_symbol`, `currency_decimals`) VALUES
+INSERT INTO `currencies` (`currency_name`, `currency_code`, `currency_symbol`, `currency_minor_units`) VALUES
   ('US Dollar', 'USD', '$', 2),
   ('Colombian Peso', 'COP', '$', 2),
   ('Yen', 'JPY', '¥', 0);
@@ -109,6 +109,6 @@ INSERT INTO `users` (
   'Kitagawa',
   'marin.kitagawa@email.com',
   '$2y$11$OuS6XhPbsoTidBbdQtC/xeA3LOt4DIZip7pSKZfqtPtGC7SdssaIq',
-  'users/pfp/179cde1570302a0549233d670c6d5334.jpg',
+  'users/pfp/b0ebfc71e37a35da5a834d47cc4ad9be.jpg',
   (SELECT `role_id` FROM `roles` WHERE `role_name` = 'Administrator')
 );
