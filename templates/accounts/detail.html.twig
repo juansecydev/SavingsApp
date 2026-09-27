@@ -108,7 +108,7 @@
             <div class="modal-content">
                 <form method="POST" action="/accounts/{{ account.account_id }}/transactions"
                       data-currency-code="{{ account.currency.currency_code|default('') }}"
-                      data-currency-decimals="{{ account.currency.currency_decimals|default(2) }}"
+                      data-currency-decimals="{{ account.currency.currency_minor_units|default(2) }}"
                       data-currency-symbol="{{ account.currency.currency_symbol|default('') }}">
                                         <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
                     <div class="modal-header">

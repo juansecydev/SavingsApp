@@ -53,8 +53,8 @@
                                 >
                                     <option value="" disabled hidden {% if old_account_currency_id is not defined or old_account_currency_id == '' %}selected{% endif %}>-- Selecciona una moneda --</option>
                                     {% for currency in currencies %}
-                                        <option value="{{ currency.currency_id }}" data-code="{{ currency.currency_code }}" data-decimals="{{ currency.currency_decimals }}" {% if old_account_currency_id is defined and old_account_currency_id == currency.currency_id %}selected{% endif %}>
-                                            {{ currency.currency_name }} ({{ currency.currency_code }})
+                                        <option value="{{ currency.currency_id }}" data-code="{{ currency.currency_code }}" data-symbol="{{ currency.currency_symbol }}" data-decimals="{{ currency.currency_minor_units }}" {% if old_account_currency_id is defined and old_account_currency_id == currency.currency_id %}selected{% endif %}>
+                                            {{ currency.currency_name }} ({{ currency.currency_code }} - {{ currency.currency_symbol }})
                                         </option>
                                     {% endfor %}
                                 </select>
@@ -114,7 +114,7 @@
                             <h6>Notas Importantes</h6>
                             <ul class="mb-0">
                                 <li>Puedes crear múltiples cuentas con diferentes monedas.</li>
-                                <li>El saldo inicial puede ser modificado más adelante.</li>
+                                <li>El saldo inicial NO puede ser modificado más adelante.</li>
                                 <li>Todos los campos marcados con * son obligatorios.</li>
                             </ul>
                         </div>
