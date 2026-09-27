@@ -28,7 +28,7 @@ class DatabaseCurrencyRepository implements CurrencyRepository
     public function findAll(): array
     {
         $rows = $this->queryBuilder->ownQuery(
-            'SELECT currency_id, currency_name, currency_code, currency_symbol, currency_decimals
+            'SELECT currency_id, currency_name, currency_code, currency_symbol, currency_minor_units
             FROM currencies
             ORDER BY currency_name',
         );
@@ -53,7 +53,7 @@ class DatabaseCurrencyRepository implements CurrencyRepository
             (string) $row['currency_name'],
             (string) $row['currency_code'],
             (string) $row['currency_symbol'],
-            (int) $row['currency_decimals'],
+            (int) $row['currency_minor_units'],
         );
     }
 }

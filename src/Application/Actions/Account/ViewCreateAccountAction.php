@@ -41,7 +41,7 @@ class ViewCreateAccountAction extends TwigAction
                 'currency_name' => $currency->getName(),
                 'currency_code' => $currency->getCode(),
                 'currency_symbol' => $currency->getSymbol(),
-                'currency_decimals' => $currency->getDecimals(),
+                'currency_minor_units' => $currency->getDecimals(),
             ],
             $this->currencyService->getCurrencies(),
         );
