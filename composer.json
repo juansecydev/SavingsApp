@@ -24,6 +24,7 @@
     "require": {
         "php": "^7.4 || ^8.0",
         "ext-json": "*",
+        "brick/money": "^0.15.1",
         "monolog/monolog": "^3.12",
         "php-di/php-di": "^7.1.1",
         "slim/psr7": "^1.8",
