@@ -5,11 +5,11 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>{% block title %}SavingsApp{% endblock %}</title>
     {# CSS global #}
-    <link rel="stylesheet" href="resources/bootstrap/css/bootstrap.min.css">
+    <link rel="stylesheet" href="/resources/bootstrap/css/bootstrap.min.css">
     {# CSS personalized block #}
     {% block stylesheets %}
     {% endblock %}
-    <link rel="icon" href="resources/img/favicon.ico" type="image/x-icon">
+    <link rel="icon" href="/resources/img/favicon.ico" type="image/x-icon">
 </head>
 <body>
 <header>
@@ -19,8 +19,8 @@
     {% block content %}{% endblock %}
 </main>
 {# JS global #}
-<script src="resources/bootstrap/js/bootstrap.min.js"></script>
-<script src="resources/js/themeMode.js"></script>
+<script src="/resources/bootstrap/js/bootstrap.min.js"></script>
+<script src="/resources/js/themeMode.js"></script>
 {# JS personalized block #}
 {% block javascript %}
 {% endblock %}
