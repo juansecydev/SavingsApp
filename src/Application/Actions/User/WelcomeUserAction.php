@@ -5,6 +5,8 @@ declare(strict_types=1);
 namespace App\Application\Actions\User;
 
 use App\Application\Actions\TwigAction;
+use App\Application\Services\AccountService;
+use App\Domain\Account\Account;
 use App\Infrastructure\Security\CSRFValidator;
 use App\Infrastructure\Security\Session;
 use Psr\Http\Message\ResponseInterface as Response;
@@ -13,8 +15,11 @@ use Slim\Views\Twig;
 
 class WelcomeUserAction extends TwigAction
 {
-    public function __construct(LoggerInterface $logger, Twig $twig)
-    {
+    public function __construct(
+        LoggerInterface $logger,
+        Twig $twig,
+        private AccountService $accountService
+    ) {
         parent::__construct($logger, $twig);
     }
 
@@ -23,11 +28,14 @@ class WelcomeUserAction extends TwigAction
         $user = $this->request->getAttribute('user');
         $sessionPicture = Session::getData('user_profile_picture');
 
-        // The image endpoint handles authorization, the default avatar, and its cache headers.
         $profilePictureId = is_array($sessionPicture)
             && is_string($sessionPicture['id'] ?? null)
             ? $sessionPicture['id']
             : 'default';
+
+        $accounts = $user !== null && $user->getId() !== null
+            ? $this->accountService->getAccountsByUserId((int) $user->getId())
+            : [];
 
         return $this->renderView('welcome.html.twig', [
             'user' => [
@@ -35,8 +43,16 @@ class WelcomeUserAction extends TwigAction
                 'user_lastname' => $user->getLastName(),
                 'profile_picture' => $profilePictureId,
             ],
-            'accounts' => [],
+            'accounts' => array_map(fn (Account $account): array => $this->formatAccountForView($account), $accounts),
             'csrf_token' => CSRFValidator::getCSRFToken(),
         ]);
+    }
+
+    private function formatAccountForView(Account $account): array
+    {
+        return [
+            'account_id' => $account->getId(),
+            'account_name' => $account->getName(),
+        ];
     }
 }
