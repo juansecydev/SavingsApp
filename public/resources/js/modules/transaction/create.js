@@ -1,3 +1,5 @@
+"use strict";
+
 document.addEventListener('DOMContentLoaded', function () {
     const transactionForm = document.querySelector('#transactionModal form');
 
@@ -8,7 +10,7 @@ document.addEventListener('DOMContentLoaded', function () {
     const amountInput = document.getElementById('transaction_amount_visual');
     const amountHiddenInput = document.getElementById('transaction_amount');
     const symbolLabel = document.getElementById('transaction_currency_symbol');
-    const typeSelect = document.getElementById('transaction_transaction_type_id');
+    const operationSelect = document.getElementById('transaction_operation_id');
     const descriptionInput = document.getElementById('transaction_description');
     const referenceInput = document.getElementById('transaction_reference');
 
@@ -130,13 +132,13 @@ document.addEventListener('DOMContentLoaded', function () {
         return true;
     };
 
-    const validateType = function () {
-        if (!typeSelect.value) {
-            setError(typeSelect, 'Debes seleccionar un tipo de transacción.');
+    const validateOperation = function () {
+        if (!operationSelect.value) {
+            setError(operationSelect, 'Debes seleccionar una operación de transacción.');
             return false;
         }
 
-        clearError(typeSelect);
+        clearError(operationSelect);
         return true;
     };
 
@@ -180,18 +182,18 @@ document.addEventListener('DOMContentLoaded', function () {
         syncAmount();
     });
 
-    typeSelect.addEventListener('input', validateType);
+    operationSelect.addEventListener('input', validateOperation);
     descriptionInput.addEventListener('input', validateDescription);
     referenceInput.addEventListener('input', validateReference);
 
     transactionForm.addEventListener('submit', function (event) {
         syncAmount();
         const isAmountValid = validateAmount();
-        const isTypeValid = validateType();
+        const isOperationValid = validateOperation();
         const isDescriptionValid = validateDescription();
         const isReferenceValid = validateReference();
 
-        if (!isAmountValid || !isTypeValid || !isDescriptionValid || !isReferenceValid) {
+        if (!isAmountValid || !isOperationValid || !isDescriptionValid || !isReferenceValid) {
             event.preventDefault();
         }
     });
