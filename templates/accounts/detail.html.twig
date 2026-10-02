@@ -146,12 +146,12 @@
                         </div>
 
                         <div class="mb-3">
-                            <label for="transaction_transaction_type_id" class="form-label">Tipo de transacción <span class="text-danger">*</span></label>
-                            <select class="form-select" id="transaction_transaction_type_id" name="transaction_transaction_type_id" required>
-                                <option value="" disabled {% if old_transaction_transaction_type_id is not defined or old_transaction_transaction_type_id == '' %}selected{% endif %}>Selecciona un tipo</option>
-                                {% for transactionType in transactionTypes %}
-                                    <option value="{{ transactionType.transaction_type_id }}" {% if old_transaction_transaction_type_id is defined and old_transaction_transaction_type_id == transactionType.transaction_type_id %}selected{% endif %}>
-                                        {{ transactionType.transaction_type_description }}{% if transactionType.transaction_type_operation_symbol %} ({{ transactionType.transaction_type_operation_symbol }}){% endif %}
+                            <label for="transaction_operation_id" class="form-label">Tipo de transacción <span class="text-danger">*</span></label>
+                            <select class="form-select" id="transaction_operation_id" name="transaction_operation_id" required>
+                                <option value="" disabled {% if old_transaction_operation_id is not defined or old_transaction_operation_id == '' %}selected{% endif %}>Selecciona un tipo</option>
+                                {% for transactionOperation in transactionOperations %}
+                                    <option value="{{ transactionOperation.transaction_operation_id }}" {% if old_transaction_operation_id is defined and old_transaction_operation_id == transactionOperation.transaction_operation_id %}selected{% endif %}>
+                                        {{ transactionOperation.transaction_operation_description }} ({{ transactionOperation.transaction_operation_symbol }})
                                     </option>
                                 {% endfor %}
                             </select>
