@@ -17,7 +17,7 @@
                             <h1 class="h3 mb-0">Crear Nueva Cuenta</h1>
                         </div>
 
-                        <form method="POST" action="/accounts/create" novalidate>
+                        <form id="createAccountForm" method="POST" action="/accounts">
                             <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
                             <div class="mb-3">
                                 <label for="account_name" class="form-label">Nombre de la Cuenta *</label>
@@ -73,13 +73,11 @@
                             <div class="mb-3">
                                 <label for="account_amount_visual" class="form-label">Saldo Inicial *</label>
                                 <div class="input-group">
-                                    <span class="input-group-text" id="currency-symbol">$</span>
                                     <input 
                                         type="text" 
-                                        class="form-control {% if errors is defined and errors.account_amount is defined %}is-invalid{% endif %}"
+                                        class="form-control {% if errors is defined and errors.account_amount_visual is defined %}is-invalid{% endif %}"
                                         id="account_amount_visual" 
                                         name="account_amount_visual" 
-                                        placeholder="0.00"
                                         inputmode="decimal"
                                         autocomplete="off"
                                         step="0.01"
@@ -89,9 +87,9 @@
                                     >
                                     <input type="hidden" id="account_amount" name="account_amount" value="{{ old_account_amount is defined ? old_account_amount : '0' }}">
                                 </div>
-                                {% if errors is defined and errors.account_amount is defined %}
+                                {% if errors is defined and errors.account_amount_visual is defined %}
                                     <div class="invalid-feedback d-block">
-                                        {% for message in errors.account_amount %}
+                                        {% for message in errors.account_amount_visual %}
                                             {{ message }}<br>
                                         {% endfor %}
                                     </div>
@@ -99,6 +97,9 @@
                                     <div class="invalid-feedback"></div>
                                 {% endif %}
                                 <small class="form-text text-muted">Ingresa el saldo inicial de la cuenta (opcional, por defecto es 0).</small>
+                                <div class="form-text">
+                                    Vista previa: <output id="account_amount_preview" aria-live="polite">Selecciona una moneda</output>
+                                </div>
                             </div>
 
 
@@ -125,6 +126,6 @@
     </div>
 {% endblock %}
 {% block javascript %}
-    <script src="/public/js/modules/account/create.js" type="module"></script>
+    <script src="/resources/js/modules/account/create.js"></script>
 {% endblock %}
 
