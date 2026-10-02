@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 use App\Application\Middleware\LoginMiddleware;
 use App\Application\Middleware\SessionMiddleware;
+use App\Application\Middleware\ProfilePictureProcessMiddleware;
 use App\Application\Actions\User\ListUsersAction;
 use App\Application\Actions\ViewLoginAction;
 use App\Application\Actions\LoginAction;
@@ -15,7 +16,8 @@ use App\Application\Actions\User\ProfileDataUserAction;
 use App\Application\Actions\User\ProcessProfilePictureAction;
 use App\Application\Actions\User\GetProfilePictureAction;
 use App\Application\Actions\Account\ViewCreateAccountAction;
-use App\Application\Middleware\ProfilePictureProcessMiddleware;
+use App\Application\Actions\Account\CreateAccountAction;
+use App\Application\Actions\Account\ViewAccountDetailAction;
 use Psr\Http\Message\ResponseInterface as Response;
 use Psr\Http\Message\ServerRequestInterface as Request;
 use Slim\App;
@@ -40,6 +42,8 @@ return function (App $app) {
         $group->post('/profile', ProfileDataUserAction::class)->setName('profile.update');
 
         $group->get('/accounts', ViewCreateAccountAction::class)->setName('account');
+        $group->post('/accounts', CreateAccountAction::class)->setName('account');
+        $group->get('/accounts/{id}', ViewAccountDetailAction::class)->setName('account.detail');
         
         $group->group('/api/v1', function (Group $apiGroup) {
             $apiGroup->post('/profile-picture/process', ProcessProfilePictureAction::class)
