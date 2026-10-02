@@ -145,7 +145,7 @@ class Validator
     private function validateRequired(string $field, $value): void
     {
         if (empty($value) && $value !== '0') {
-            $this->addError($field, 'required', "$field es requerido");
+            $this->addError($field, 'required', "$field is required");
         }
     }
 
@@ -158,7 +158,7 @@ class Validator
     private function validateEmail(string $field, $value): void
     {
         if (!empty($value) && !filter_var($value, FILTER_VALIDATE_EMAIL)) {
-            $this->addError($field, 'email', "$field debe ser un correo válido");
+            $this->addError($field, 'email', "$field must be a valid email address");
         }
     }
 
@@ -174,7 +174,7 @@ class Validator
         if (!empty($value)) {
             $length = is_numeric($value) ? (int) $value : strlen((string) $value);
             if ($length < (int) $parameter) {
-                $this->addError($field, 'min', "$field debe tener mínimo $parameter caracteres");
+                $this->addError($field, 'min', "$field must be at least $parameter characters long");
             }
         }
     }
@@ -191,7 +191,7 @@ class Validator
         if (!empty($value)) {
             $length = is_numeric($value) ? (int) $value : strlen((string) $value);
             if ($length > (int) $parameter) {
-                $this->addError($field, 'max', "$field debe tener máximo $parameter caracteres");
+                $this->addError($field, 'max', "$field must be no more than $parameter characters long");
             }
         }
     }
@@ -209,7 +209,7 @@ class Validator
             [$min, $max] = explode(',', $parameter);
             $length = is_numeric($value) ? (int) $value : strlen((string) $value);
             if ($length < (int) $min || $length > (int) $max) {
-                $this->addError($field, 'between', "$field debe tener entre $min y $max caracteres");
+                $this->addError($field, 'between', "$field must be between $min and $max characters long");
             }
         }
     }
@@ -223,7 +223,7 @@ class Validator
     private function validateNumeric(string $field, $value): void
     {
         if (!empty($value) && !is_numeric($value)) {
-            $this->addError($field, 'numeric', "$field debe ser numérico");
+            $this->addError($field, 'numeric', "$field must be numeric");
         }
     }
 
@@ -236,7 +236,7 @@ class Validator
     private function validateString(string $field, $value): void
     {
         if (!empty($value) && !is_string($value)) {
-            $this->addError($field, 'string', "$field debe ser texto");
+            $this->addError($field, 'string', "$field must be a string");
         }
     }
 
@@ -249,7 +249,7 @@ class Validator
     private function validateInteger(string $field, $value): void
     {
         if (!empty($value) && !is_int($value) && !ctype_digit((string) $value)) {
-            $this->addError($field, 'integer', "$field debe ser un número entero");
+            $this->addError($field, 'integer', "$field must be an integer");
         }
     }
 
@@ -263,7 +263,7 @@ class Validator
     private function validateRegex(string $field, $value, $parameter): void
     {
         if (!empty($value) && !preg_match($parameter, (string) $value)) {
-            $this->addError($field, 'regex', "$field tiene un formato inválido");
+            $this->addError($field, 'regex', "$field has an invalid format");
         }
     }
 
@@ -279,7 +279,7 @@ class Validator
         $confirmValue = $this->data[$confirmField] ?? null;
         
         if ($value !== $confirmValue) {
-            $this->addError($field, 'confirmed', "$field no coincide con la confirmación");
+            $this->addError($field, 'confirmed', "$field does not match the confirmation");
         }
     }
 
@@ -308,7 +308,7 @@ class Validator
         if (!empty($value)) {
             $allowedValues = array_map('trim', explode(',', $parameter));
             if (!in_array((string) $value, $allowedValues)) {
-                $this->addError($field, 'in', "$field tiene un valor no permitido");
+                $this->addError($field, 'in', "$field has an invalid value");
             }
         }
     }
