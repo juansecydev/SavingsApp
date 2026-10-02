@@ -1,0 +1,101 @@
+<?php
+
+declare(strict_types=1);
+
+namespace App\Infrastructure\Persistence\Account;
+
+use App\Domain\Account\Account;
+use App\Domain\Account\AccountRepository;
+use App\Infrastructure\Persistence\Database\QueryBuilder;
+
+class DatabaseAccountRepository implements AccountRepository
+{
+    public function __construct(private QueryBuilder $queryBuilder) {}
+
+    public function findByUserId(int $userId): array
+    {
+        $rows = $this->queryBuilder->ownQuery(
+            'SELECT
+                a.account_id,
+                a.account_title AS account_name,
+                a.account_balance,
+                a.account_user_id,
+                a.account_currency_id,
+                c.currency_code,
+                c.currency_name,
+                c.currency_symbol,
+                c.currency_minor_units
+            FROM accounts a
+            INNER JOIN currencies c ON c.currency_id = a.account_currency_id
+            WHERE a.account_user_id = :user_id
+            ORDER BY a.account_id DESC',
+            ['user_id' => $userId],
+        );
+
+        if ($rows === false || !is_array($rows)) {
+            return [];
+        }
+
+        return array_map(fn (array $row): Account => $this->mapAccount($row), $rows);
+    }
+
+    public function findOneByUser(int $accountId, int $userId): ?Account
+    {
+        $rows = $this->queryBuilder->ownQuery(
+            'SELECT
+                a.account_id,
+                a.account_title AS account_name,
+                a.account_balance,
+                a.account_user_id,
+                a.account_currency_id,
+                c.currency_code,
+                c.currency_name,
+                c.currency_symbol,
+                c.currency_minor_units
+            FROM accounts a
+            INNER JOIN currencies c ON c.currency_id = a.account_currency_id
+            WHERE a.account_id = :account_id AND a.account_user_id = :user_id
+            LIMIT 1',
+            [
+                'account_id' => $accountId,
+                'user_id' => $userId,
+            ],
+        );
+
+        if ($rows === false || !is_array($rows) || $rows === []) {
+            return null;
+        }
+
+        return $this->mapAccount($rows[0]);
+    }
+
+    public function createAccount(int $userId, string $title, int $currencyId, int $balanceMinor): bool
+    {
+        return $this->queryBuilder->ownQuery(
+            'INSERT INTO accounts (account_title, account_balance, account_user_id, account_currency_id)
+            VALUES (:title, :balance, :user_id, :currency_id)',
+            [
+                'title' => $title,
+                'balance' => $balanceMinor,
+                'user_id' => $userId,
+                'currency_id' => $currencyId,
+            ],
+            true,
+        );
+    }
+
+    private function mapAccount(array $row): Account
+    {
+        return new Account(
+            (int) $row['account_id'],
+            (string) $row['account_name'],
+            (int) $row['account_balance'],
+            (int) $row['account_user_id'],
+            (int) $row['account_currency_id'],
+            isset($row['currency_code']) ? (string) $row['currency_code'] : null,
+            isset($row['currency_name']) ? (string) $row['currency_name'] : null,
+            isset($row['currency_symbol']) ? (string) $row['currency_symbol'] : null,
+            isset($row['currency_minor_units']) ? (int) $row['currency_minor_units'] : null,
+        );
+    }
+}
