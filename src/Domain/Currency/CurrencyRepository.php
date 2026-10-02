@@ -15,4 +15,11 @@ interface CurrencyRepository
      * @return Currency[] Currencies ordered by their display name.
      */
     public function findAll(): array;
+
+    /**
+     * Get the currency data of a specific currency by id.
+     *
+     * @return ?Currency The currency model instance representation if exists, else return null.
+     */
+    public function findOne(string|int $id): ?Currency;
 }
