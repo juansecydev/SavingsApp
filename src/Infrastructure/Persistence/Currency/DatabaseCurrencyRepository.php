@@ -41,6 +41,27 @@ class DatabaseCurrencyRepository implements CurrencyRepository
     }
 
     /**
+     * Get the currency data of a specific currency by id.
+     *
+     * @return ?Currency The currency model instance representation if exists, else return null.
+     */
+    public function findOne(string|int $id): ?Currency
+    {
+        $row = $this->queryBuilder->ownQuery(
+            'SELECT currency_id, currency_name, currency_code, currency_symbol, currency_minor_units
+            FROM currencies
+            WHERE currency_id = :currency_id
+            LIMIT 1',
+            [$id]
+        );
+
+        if (empty($row) || !is_array($row[0])) {
+            return null;
+        }
+        return $this->mapCurrency($row[0]);
+    }
+
+    /**
      * Map a database currency row to its domain representation.
      *
      * @param array<string, mixed> $row Currency row returned by the database.
