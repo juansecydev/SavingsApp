@@ -28,4 +28,15 @@ class CurrencyService
     {
         return $this->currencyRepository->findAll();
     }
+
+    /**
+     * Get specific currency data of a currency by id.
+     *
+     * @return ?Currency Currency model instance if exists, else return null.
+     */
+    public function getCurrency(string|int $id): ?Currency
+    {
+        return $this->currencyRepository->findOne($id);
+    }
+
 }
