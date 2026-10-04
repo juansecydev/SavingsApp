@@ -15,19 +15,39 @@ document.addEventListener('DOMContentLoaded', function () {
 
     const amountInput = document.getElementById('transaction_amount_visual');
     const amountHiddenInput = document.getElementById('transaction_amount');
-    const symbolLabel = document.getElementById('transaction_currency_symbol');
+    const amountPreview = document.getElementById('transaction_amount_preview');
     const operationSelect = document.getElementById('transaction_operation_id');
     const descriptionInput = document.getElementById('transaction_description');
     const referenceInput = document.getElementById('transaction_reference');
+
+    if (!amountInput || !amountHiddenInput || !operationSelect || !descriptionInput || !referenceInput) {
+        return;
+    }
 
     let currencyCode = transactionForm.dataset.currencyCode || '';
     let currencyDecimals = Number.parseInt(transactionForm.dataset.currencyDecimals || '2', 10);
     let currencySymbol = transactionForm.dataset.currencySymbol || currencyCode;
     const currencyLocale = navigator.language ?? 'es-CO';
-    let currencyFormatter = new Intl.NumberFormat(currencyLocale, {
-        minimumFractionDigits: currencyDecimals,
-        maximumFractionDigits: currencyDecimals,
-    });
+    const decimalSeparator = new Intl.NumberFormat(currencyLocale)
+        .formatToParts(1.1)
+        .find(function (part) {
+            return part.type === 'decimal';
+        })?.value || '.';
+    let currencyFormatter = null;
+
+    const configureCurrencyFormatting = function () {
+        if (!/^[A-Z]{3}$/.test(currencyCode) || !Number.isInteger(currencyDecimals) || currencyDecimals < 0) {
+            currencyFormatter = null;
+            return;
+        }
+
+        currencyFormatter = new Intl.NumberFormat(currencyLocale, {
+            style: 'currency',
+            currency: currencyCode,
+            minimumFractionDigits: currencyDecimals,
+            maximumFractionDigits: currencyDecimals,
+        });
+    };
 
     const getFieldWrapper = function (field) {
         return field.closest('.mb-3') || field.parentElement;
@@ -58,50 +78,69 @@ document.addEventListener('DOMContentLoaded', function () {
         }
     };
 
-    const getDigitsOnly = function (value) {
-        return String(value ?? '').replace(/[^\d]/g, '');
-    };
-
-    const formatAmountValue = function (value) {
-        const digits = getDigitsOnly(value);
-
-        if (digits === '') {
-            return '';
-        }
-
-        const numericValue = Number(digits) / Math.pow(10, currencyDecimals);
-        return numericValue.toFixed(currencyDecimals);
-    };
-
-    const formatVisibleAmount = function (value) {
-        const normalized = String(value ?? '').replace(/[^\d.]/g, '');
-
-        if (normalized === '' || normalized === '.') {
-            return '';
-        }
-
-        const numericValue = parseFloat(normalized);
-        if (Number.isNaN(numericValue)) {
-            return '';
-        }
-
-        return currencyFormatter.format(numericValue);
-    };
-
     const updateCurrencyFormatting = function () {
-        if (symbolLabel) {
-            symbolLabel.textContent = currencySymbol || currencyCode || '$';
-        }
-
-        amountInput.placeholder = `0.${'0'.repeat(currencyDecimals)}`;
+        amountInput.placeholder = currencyDecimals > 0
+            ? `0${decimalSeparator}${'0'.repeat(currencyDecimals)}`
+            : '0';
         amountInput.setAttribute('inputmode', 'decimal');
 
-        const currentValue = amountHiddenInput.value;
-        if (currentValue) {
-            const normalized = formatAmountValue(String(currentValue));
-            amountInput.value = formatVisibleAmount(normalized);
-            amountHiddenInput.value = normalized;
+        const amount = Number(amountHiddenInput.value);
+        if (currencyFormatter && amountHiddenInput.value !== '' && Number.isFinite(amount)) {
+            amountInput.value = currencyFormatter.format(amount);
         }
+    };
+
+    const updateHiddenAmount = function () {
+        const normalizedValue = amountInput.value.replace(decimalSeparator, '.');
+        const numericValue = Number(normalizedValue);
+
+        amountHiddenInput.value = normalizedValue === '' || !Number.isFinite(numericValue)
+            ? ''
+            : numericValue.toFixed(currencyDecimals);
+        updateAmountPreview();
+    };
+
+    const updateAmountPreview = function () {
+        if (!amountPreview) {
+            return;
+        }
+
+        const amount = Number(amountHiddenInput.value);
+        if (!currencyFormatter || amountHiddenInput.value === '' || !Number.isFinite(amount)) {
+            amountPreview.textContent = '';
+            return;
+        }
+
+        amountPreview.textContent = currencyFormatter
+            .formatToParts(amount)
+            .map(function (part) {
+                return part.type === 'currency' ? currencySymbol : part.value;
+            })
+            .join('');
+    };
+
+    const sanitizeAmountInput = function () {
+        let sanitizedValue = '';
+        let hasDecimalSeparator = false;
+
+        for (const character of amountInput.value) {
+            if (/\d/.test(character)) {
+                sanitizedValue += character;
+            } else if (
+                (character === '.' || character === ',') &&
+                !hasDecimalSeparator &&
+                currencyDecimals > 0
+            ) {
+                sanitizedValue += decimalSeparator;
+                hasDecimalSeparator = true;
+            }
+        }
+
+        const [integerPart, fractionalPart] = sanitizedValue.split(decimalSeparator);
+        amountInput.value = fractionalPart === undefined
+            ? integerPart
+            : `${integerPart}${decimalSeparator}${fractionalPart.slice(0, currencyDecimals)}`;
+        updateHiddenAmount();
     };
 
     const showAccountDataError = function (message) {
@@ -230,25 +269,24 @@ document.addEventListener('DOMContentLoaded', function () {
 
         currencyCode = currencyCodeFromApi;
         currencyDecimals = decimals;
-        currencySymbol = String(currency.symbol || currencyCode);
+        currencySymbol = String(currency.symbol ?? '');
+        if (currencySymbol === '') {
+            throw new Error('La respuesta de la cuenta no incluye el símbolo de la moneda.');
+        }
         transactionForm.dataset.currencyCode = currencyCode;
         transactionForm.dataset.currencyDecimals = String(currencyDecimals);
         transactionForm.dataset.currencySymbol = currencySymbol;
-        currencyFormatter = new Intl.NumberFormat(currencyLocale, {
-            minimumFractionDigits: currencyDecimals,
-            maximumFractionDigits: currencyDecimals,
-        });
+        configureCurrencyFormatting();
         updateCurrencyFormatting();
+        updateAmountPreview();
 
-        const amountFormatter = new Intl.NumberFormat(currencyLocale, {
-            style: 'currency',
-            currency: currencyCode,
+        accountAmount.textContent = currencyFormatter.format(amount);
+
+        const transactionAmountFormatter = new Intl.NumberFormat(currencyLocale, {
             minimumFractionDigits: currencyDecimals,
             maximumFractionDigits: currencyDecimals,
         });
-        accountAmount.textContent = amountFormatter.format(amount);
-
-        renderTransactions(data.transactions, currencyFormatter, currencyCode);
+        renderTransactions(data.transactions, transactionAmountFormatter, currencyCode);
 
         if (accountDataError) {
             accountDataError.hidden = true;
@@ -295,24 +333,8 @@ document.addEventListener('DOMContentLoaded', function () {
         }
     };
 
-    const syncAmount = function () {
-        const digits = getDigitsOnly(amountInput.value);
-
-        if (digits === '') {
-            amountInput.value = '';
-            amountHiddenInput.value = '';
-            return;
-        }
-
-        const numericValue = Number(digits) / Math.pow(10, currencyDecimals);
-        const normalizedValue = numericValue.toFixed(currencyDecimals);
-
-        amountHiddenInput.value = normalizedValue;
-        amountInput.value = formatVisibleAmount(normalizedValue);
-    };
-
     const validateAmount = function () {
-        const normalizedValue = amountHiddenInput.value || amountInput.value;
+        const normalizedValue = amountHiddenInput.value;
 
         if (normalizedValue === '') {
             setError(amountInput, 'El monto es obligatorio.');
@@ -363,20 +385,24 @@ document.addEventListener('DOMContentLoaded', function () {
         return true;
     };
 
-    amountInput.addEventListener('input', function () {
-        const start = amountInput.selectionStart;
-        const end = amountInput.selectionEnd;
+    amountInput.addEventListener('input', sanitizeAmountInput);
+    amountInput.addEventListener('focus', function () {
+        const numericValue = Number(amountHiddenInput.value);
 
-        syncAmount();
-        validateAmount();
+        if (amountHiddenInput.value !== '' && Number.isFinite(numericValue)) {
+            amountInput.value = numericValue.toFixed(currencyDecimals).replace('.', decimalSeparator);
+        }
+    });
+    amountInput.addEventListener('blur', function () {
+        const numericValue = Number(amountHiddenInput.value);
 
-        const lengthDelta = amountInput.value.length - (amountInput.value.length - (end - start));
-        const newPosition = Math.max(0, Math.min(amountInput.value.length, start + (amountInput.value.length - lengthDelta)));
-        amountInput.setSelectionRange(newPosition, newPosition);
+        if (currencyFormatter && amountHiddenInput.value !== '' && Number.isFinite(numericValue)) {
+            amountInput.value = currencyFormatter.format(numericValue);
+        }
     });
 
-    amountInput.addEventListener('blur', function () {
-        syncAmount();
+    amountInput.addEventListener('input', function () {
+        validateAmount();
     });
 
     operationSelect.addEventListener('input', validateOperation);
@@ -384,7 +410,6 @@ document.addEventListener('DOMContentLoaded', function () {
     referenceInput.addEventListener('input', validateReference);
 
     transactionForm.addEventListener('submit', function (event) {
-        syncAmount();
         const isAmountValid = validateAmount();
         const isOperationValid = validateOperation();
         const isDescriptionValid = validateDescription();
