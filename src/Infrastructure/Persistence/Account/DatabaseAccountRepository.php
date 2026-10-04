@@ -107,9 +107,18 @@ class DatabaseAccountRepository implements AccountRepository
         return $this->mapAccount($rows[0]);
     }
 
-    public function createAccount(int $userId, string $title, int $currencyId, int $balanceMinor): bool
+    /**
+     * Insert an account and return its generated identifier.
+     *
+     * @param int $userId Owner of the new account.
+     * @param string $title Account title.
+     * @param int $currencyId Currency attached to the account.
+     * @param int $balanceMinor Initial balance in minor currency units.
+     * @return int|false New account identifier, or false when insertion fails.
+     */
+    public function createAccount(int $userId, string $title, int $currencyId, int $balanceMinor): int|false
     {
-        return $this->queryBuilder->ownQuery(
+        $created = $this->queryBuilder->ownQuery(
             'INSERT INTO accounts (account_title, account_balance, account_user_id, account_currency_id)
             VALUES (:title, :balance, :user_id, :currency_id)',
             [
@@ -120,6 +129,14 @@ class DatabaseAccountRepository implements AccountRepository
             ],
             true
         );
+
+        if ($created !== true) {
+            return false;
+        }
+
+        $accountId = filter_var($this->queryBuilder->lastInsertId(), FILTER_VALIDATE_INT);
+
+        return $accountId !== false && $accountId > 0 ? $accountId : false;
     }
 
     /**

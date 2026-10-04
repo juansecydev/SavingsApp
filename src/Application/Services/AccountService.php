@@ -55,9 +55,15 @@ class AccountService
     }
 
     /**
-     * Persist a newly created account balance in minor units.
+     * Persist a new account and return its generated identifier.
+     *
+     * @param int $userId Owner of the new account.
+     * @param string $title Account title.
+     * @param int $currencyId Currency attached to the account.
+     * @param int $balanceMinor Initial balance in minor currency units.
+     * @return int|false New account identifier, or false when persistence fails.
      */
-    public function createAccount(int $userId, string $title, int $currencyId, int $balanceMinor): bool
+    public function createAccount(int $userId, string $title, int $currencyId, int $balanceMinor): int|false
     {
         return $this->accountRepository->createAccount($userId, $title, $currencyId, $balanceMinor);
     }

@@ -34,9 +34,9 @@ interface AccountRepository
      * @param string $title Sanitized account title.
      * @param int $currencyId Currency attached to the account.
      * @param int $balanceMinor The account balance expressed in minor units.
-     * @return bool True when the insert succeeds.
+     * @return int|false New account identifier, or false when the insert fails.
      */
-    public function createAccount(int $userId, string $title, int $currencyId, int $balanceMinor): bool;
+    public function createAccount(int $userId, string $title, int $currencyId, int $balanceMinor): int|false;
 
     /**
      * Replace an account balance while an owning transaction is active.

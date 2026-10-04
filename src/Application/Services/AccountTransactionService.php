@@ -41,6 +41,63 @@ class AccountTransactionService
     }
 
     /**
+     * Create an account and record its opening balance as one atomic operation.
+     *
+     * The account starts at zero within the transaction, then the opening entry
+     * updates its balance. A negative opening balance is recorded as an egress.
+     *
+     * @param int $userId Authenticated account owner.
+     * @param string $accountTitle New account title.
+     * @param int $currencyId Currency attached to the new account.
+     * @param int $balanceMinor Opening balance in minor currency units.
+     * @param TransactionOperation $operation Income or egress operation matching the balance sign.
+     * @return bool True when both inserts and the balance update commit; false after failure.
+     */
+    public function createAccountWithOpeningTransaction(
+        int $userId,
+        string $accountTitle,
+        int $currencyId,
+        int $balanceMinor,
+        TransactionOperation $operation
+    ): bool {
+        $expectedSymbol = $balanceMinor < 0 ? '-' : '+';
+        if ($operation->getSymbol() !== $expectedSymbol || $balanceMinor === PHP_INT_MIN) {
+            return false;
+        }
+
+        $result = $this->queryBuilder->transaction(function () use (
+            $userId,
+            $accountTitle,
+            $currencyId,
+            $balanceMinor,
+            $operation
+        ): bool {
+            $accountId = $this->accountService->createAccount($userId, $accountTitle, $currencyId, 0);
+
+            if ($accountId === false) {
+                throw new RuntimeException('Unable to persist the new account.');
+            }
+
+            if (
+                !$this->createTransaction(
+                    $userId,
+                    $accountId,
+                    $operation,
+                    abs($balanceMinor),
+                    'Account created',
+                    null,
+                )
+            ) {
+                throw new RuntimeException('Unable to record the account opening transaction.');
+            }
+
+            return true;
+        });
+
+        return $result === true;
+    }
+
+    /**
      * Create a transaction and update its account balance atomically.
      *
      * The account row is locked before calculating its new balance, so concurrent

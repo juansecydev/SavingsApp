@@ -6,8 +6,11 @@ namespace App\Application\Actions\Account;
 
 use App\Application\Actions\TwigAction;
 use App\Application\Services\AccountService;
+use App\Application\Services\AccountTransactionService;
 use App\Application\Services\CurrencyService;
+use App\Application\Services\TransactionOperationService;
 use App\Domain\Currency\Currency;
+use App\Domain\TransactionOperation\TransactionOperation;
 use App\Domain\User\User;
 use App\Infrastructure\Http\Sanitizer;
 use App\Infrastructure\Http\Validator;
@@ -16,7 +19,7 @@ use Psr\Http\Message\ResponseInterface as Response;
 use Slim\Views\Twig;
 
 /**
- * Validates submitted account data, converts the balance to minor units, and persists a new account.
+ * Validates account data and atomically creates the account with its opening-balance transaction.
  */
 class CreateAccountAction extends TwigAction
 {
@@ -24,13 +27,19 @@ class CreateAccountAction extends TwigAction
      * @param \Psr\Log\LoggerInterface $logger Application logger used by the action.
      * @param Twig $twig Twig renderer configured with the application's templates.
      * @param CurrencyService $currencyService Service used to load available currencies.
-     * @param AccountService $accountService Service used to persist new accounts.
+     * @param AccountService $accountService Service used to convert balances and persist new accounts.
+     * @param AccountTransactionService $accountTransactionService Service used to persist accounts
+     *        and opening transactions atomically.
+     * @param TransactionOperationService $transactionOperationService Service used to resolve
+     *        income and egress operations.
      */
     public function __construct(
         \Psr\Log\LoggerInterface $logger,
         Twig $twig,
         private CurrencyService $currencyService,
-        private AccountService $accountService
+        private AccountService $accountService,
+        private AccountTransactionService $accountTransactionService,
+        private TransactionOperationService $transactionOperationService
     ) {
         parent::__construct($logger, $twig);
     }
@@ -89,7 +98,7 @@ class CreateAccountAction extends TwigAction
             }
         }
 
-        $normalizedAmount = $this->normalizeMoneyInput($validatedData['account_amount'] ?? null);
+        $normalizedAmount = $this->normalizeMoneyInput($validatedData['account_amount']);
         if ($normalizedAmount === null) {
             $errors['account_amount_visual'][] = 'El saldo inicial debe ser un número válido.';
         }
@@ -106,15 +115,29 @@ class CreateAccountAction extends TwigAction
             }
 
             $minorBalance = $this->accountService->convertAmountToMinorUnits($normalizedAmount, $currencyCode);
-            $created = $this->accountService->createAccount(
+            $operationSymbol = $minorBalance < 0 ? '-' : '+';
+            $operation = null;
+            foreach ($this->transactionOperationService->getTransactionOperations() as $availableOperation) {
+                if ($availableOperation->getSymbol() === $operationSymbol) {
+                    $operation = $availableOperation;
+                    break;
+                }
+            }
+
+            if (!$operation instanceof TransactionOperation) {
+                throw new \RuntimeException('The transaction operation for the opening balance is unavailable.');
+            }
+
+            $created = $this->accountTransactionService->createAccountWithOpeningTransaction(
                 $user->getId(),
                 (string) $validatedData['account_name'],
                 (int) $validatedData['account_currency_id'],
                 $minorBalance,
+                $operation,
             );
 
             if (!$created) {
-                throw new \RuntimeException('Unable to persist the new account.');
+                throw new \RuntimeException('Unable to persist the new account and opening transaction.');
             }
 
             return $this->response
