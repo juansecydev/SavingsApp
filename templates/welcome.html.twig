@@ -50,14 +50,14 @@
                                                 <div class="card-body">
                                                     <h6 class="card-title">{{ account.account_name }}</h6>
                                                     <div class="d-flex gap-2">
-                                                        <a href="{{ url_for('account.detail', {'id': account.account_id}) }}" class="btn btn-sm btn-outline-primary">Ver detalles</a>
+                                                        <a href="{{ url_for('account.detail', {'id': account.account_id}) }}" class="btn btn-sm btn-outline-primary"><i class="bi bi-eye"></i> Ver detalles</a>
                                                         <button
                                                             type="button"
                                                             class="btn btn-sm btn-outline-danger"
                                                             data-bs-toggle="modal"
                                                             data-bs-target="#deleteAccountModal{{ account.account_id }}"
                                                         >
-                                                            Eliminar
+                                                        <i class="bi bi-trash-fill"></i>    Eliminar
                                                         </button>
                                                     </div>
                                                 </div>
@@ -113,7 +113,7 @@
                             {% endif %}
                         </div>
 
-                        <div class="mt-4 p-3 bg-light rounded">
+                        <div class="mt-4 p-3 rounded">
                             <h5>Información</h5>
                             <p>Este es tu panel de bienvenida. Aquí puedes ver tus cuentas de ahorro y gestionar tus transacciones.</p>
                         </div>

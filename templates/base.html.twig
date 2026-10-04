@@ -6,6 +6,7 @@
     <title>{% block title %}SavingsApp{% endblock %}</title>
     {# CSS global #}
     <link rel="stylesheet" href="/resources/bootstrap/css/bootstrap.min.css">
+    <link rel="stylesheet" href="/resources/bootstrap/icons/bootstrap-icons.min.css">
     {# CSS personalized block #}
     {% block stylesheets %}
     {% endblock %}
@@ -13,7 +14,11 @@
 </head>
 <body>
 <header>
-    {# TODO: Make an header as a include #}
+    <div class="container-fluid d-flex justify-content-end p-3">
+        <button id="theme-toggle" class="btn btn-outline-secondary" type="button" aria-label="Cambiar a modo claro">
+            <i class="bi bi-brightness-high-fill" aria-hidden="true"></i>
+        </button>
+    </div>
 </header>
 <main>
     {% block content %}{% endblock %}

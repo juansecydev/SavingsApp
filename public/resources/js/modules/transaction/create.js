@@ -185,12 +185,20 @@ document.addEventListener('DOMContentLoaded', function () {
             jquery(transactionsTable).DataTable().destroy();
         }
 
+        const transactionTypePresentation = {
+            Income: { label: 'Income', icon: 'bi-graph-up-arrow' },
+            Egress: { label: 'Egress', icon: 'bi-graph-down-arrow' },
+        };
+        const textRenderer = jquery.fn.dataTable.render.text();
         const rows = transactions.map(function (transaction) {
             const amount = String(transaction.amount || '');
 
             return [
                 String(transaction.date || ''),
-                `${String(transaction.type || '')} ${String(transaction.symbol || '')}`.trim(),
+                {
+                    type: String(transaction.type || ''),
+                    symbol: String(transaction.symbol || ''),
+                },
                 /^-?\d+(?:\.\d+)?$/.test(amount) ? `${formatter.format(amount)} ${code}` : '',
                 String(transaction.description || ''),
                 String(transaction.reference || ''),
@@ -208,8 +216,30 @@ document.addEventListener('DOMContentLoaded', function () {
             order: [[0, 'desc']],
             columnDefs: [
                 {
-                    targets: '_all',
-                    render: jquery.fn.dataTable.render.text(),
+                    targets: [0, 2, 3, 4],
+                    render: textRenderer,
+                },
+                {
+                    targets: 1,
+                    render: function (data, type, row, meta) {
+                        const transactionType = typeof data === 'object' && data !== null
+                            ? data.type
+                            : '';
+                        const presentation = transactionTypePresentation[transactionType];
+
+                        if (!presentation) {
+                            const label = typeof data === 'object' && data !== null
+                                ? `${data.type || ''} ${data.symbol || ''}`.trim()
+                                : String(data || '');
+                            return textRenderer(label, type, row, meta);
+                        }
+
+                        if (type !== 'display') {
+                            return presentation.label;
+                        }
+
+                        return `<i class="bi ${presentation.icon}" aria-hidden="true"></i> ${presentation.label}`;
+                    },
                 },
             ],
             fixedColumns: {

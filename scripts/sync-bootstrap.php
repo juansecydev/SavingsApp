@@ -71,15 +71,22 @@ if ($projectRoot === false) {
     fail('Project root not found.');
 }
 
-$source = realpath(__DIR__ . '/../vendor/twbs/bootstrap/dist');
+$bootstrapSource = realpath(__DIR__ . '/../vendor/twbs/bootstrap/dist');
+$iconsSource = realpath(__DIR__ . '/../vendor/twbs/bootstrap-icons/font');
 $target = $projectRoot . DIRECTORY_SEPARATOR . 'public' . DIRECTORY_SEPARATOR . 'resources' . DIRECTORY_SEPARATOR . 'bootstrap';
 
-if ($source === false || !is_dir($source)) {
+if ($bootstrapSource === false || !is_dir($bootstrapSource)) {
     fail("Bootstrap source directory not found: {$projectRoot}/vendor/twbs/bootstrap/dist");
 }
 
-if (!str_starts_with($source, $projectRoot . DIRECTORY_SEPARATOR)) {
-    fail('Bootstrap source path is outside the project root.');
+if ($iconsSource === false || !is_dir($iconsSource)) {
+    fail("Bootstrap Icons source directory not found: {$projectRoot}/vendor/twbs/bootstrap-icons/font");
+}
+
+foreach ([$bootstrapSource, $iconsSource] as $source) {
+    if (!str_starts_with($source, $projectRoot . DIRECTORY_SEPARATOR)) {
+        fail('Asset source path is outside the project root.');
+    }
 }
 
 if (is_link($target) || is_link(dirname($target))) {
@@ -94,35 +101,41 @@ if (!is_dir($target) && !@mkdir($target, 0755, true) && !is_dir($target)) {
     fail('Failed to create target directory: ' . $target);
 }
 
-$iterator = new RecursiveIteratorIterator(
-    new RecursiveDirectoryIterator($source, FilesystemIterator::SKIP_DOTS),
-    RecursiveIteratorIterator::SELF_FIRST
-);
+$sources = [
+    $bootstrapSource => $target,
+    $iconsSource => $target . DIRECTORY_SEPARATOR . 'icons',
+];
 
-foreach ($iterator as $item) {
-    $relativePath = $iterator->getSubPathName();
-    $targetPath = $target . DIRECTORY_SEPARATOR . $relativePath;
+foreach ($sources as $source => $destination) {
+    $iterator = new RecursiveIteratorIterator(
+        new RecursiveDirectoryIterator($source, FilesystemIterator::SKIP_DOTS),
+        RecursiveIteratorIterator::SELF_FIRST
+    );
 
-    if ($item->isLink()) {
-        fail('Refusing to copy a symlinked Bootstrap asset.');
-    }
+    foreach ($iterator as $item) {
+        $relativePath = $iterator->getSubPathName();
+        $targetPath = $destination . DIRECTORY_SEPARATOR . $relativePath;
 
-    if ($item->isDir()) {
-        if (!is_dir($targetPath) && !@mkdir($targetPath, 0755, true) && !is_dir($targetPath)) {
-            fail('Failed to create directory: ' . $targetPath);
+        if ($item->isLink()) {
+            fail('Refusing to copy a symlinked asset.');
         }
-        continue;
-    }
 
-    $parentDir = dirname($targetPath);
-    if (!is_dir($parentDir) && !@mkdir($parentDir, 0755, true) && !is_dir($parentDir)) {
-        fail('Failed to create parent directory: ' . $parentDir);
-    }
+        if ($item->isDir()) {
+            if (!is_dir($targetPath) && !@mkdir($targetPath, 0755, true) && !is_dir($targetPath)) {
+                fail('Failed to create directory: ' . $targetPath);
+            }
+            continue;
+        }
 
-    if (!@copy($item->getPathname(), $targetPath)) {
-        fail('Failed to copy file: ' . $item->getPathname() . ' -> ' . $targetPath);
+        $parentDir = dirname($targetPath);
+        if (!is_dir($parentDir) && !@mkdir($parentDir, 0755, true) && !is_dir($parentDir)) {
+            fail('Failed to create parent directory: ' . $parentDir);
+        }
+
+        if (!@copy($item->getPathname(), $targetPath)) {
+            fail('Failed to copy file: ' . $item->getPathname() . ' -> ' . $targetPath);
+        }
     }
 }
 
-fwrite(STDOUT, "Bootstrap assets synchronized successfully." . PHP_EOL);
-
+fwrite(STDOUT, "Bootstrap and Bootstrap Icons assets synchronized successfully." . PHP_EOL);
