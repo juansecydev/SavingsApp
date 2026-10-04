@@ -13,7 +13,7 @@ document.addEventListener("DOMContentLoaded", function(event) {
     const amountInput = document.getElementById('account_amount_visual');
     const amountHiddenInput = document.getElementById('account_amount');
     const amountPreview = document.getElementById('account_amount_preview');
-    const locale = 'es-CO';
+    const locale = navigator.language ?? 'es-CO';
 
     if (!currencySelect || !amountInput || !amountHiddenInput) {
         return;

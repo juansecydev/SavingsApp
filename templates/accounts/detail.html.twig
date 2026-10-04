@@ -22,28 +22,14 @@
                             <a href="/welcome" class="btn btn-outline-secondary">Volver</a>
                         </div>
 
+                        <input type="hidden" id="account_id" value="{{ account.account_id }}">
+                        <div id="account-data-error" class="alert alert-danger" role="alert" aria-live="polite" hidden></div>
+
                         <div class="row">
-                            <div class="col-12 col-md-6 mb-3">
+                            <div class="col-12 mb-3">
                                 <div class="card p-3 h-100">
                                     <h5>Saldo actual</h5>
-                                    <p class="mb-0 fs-4 fw-bold">
-                                        {{ account.account_amount|number_format(2, ',', '.') }}
-                                        {% if account.currency %}
-                                            {{ account.currency.currency_code }}
-                                        {% endif %}
-                                    </p>
-                                </div>
-                            </div>
-                            <div class="col-12 col-md-6 mb-3">
-                                <div class="card p-3 h-100">
-                                    <h5>Moneda</h5>
-                                    <p class="mb-0">
-                                        {% if account.currency %}
-                                            {{ account.currency.currency_name }} ({{ account.currency.currency_code }})
-                                        {% else %}
-                                            No disponible
-                                        {% endif %}
-                                    </p>
+                                    <p class="mb-0 fs-4 fw-bold" id="account-amount" aria-live="polite">Cargando...</p>
                                 </div>
                             </div>
                         </div>
@@ -74,26 +60,7 @@
                                             <th><input type="text" placeholder="Buscar descripción" class="form-control form-control-sm" /></th>
                                         </tr>
                                     </tfoot>
-                                    <tbody>
-                                        {% set txs = account.transactions is defined ? account.transactions : [] %}
-                                        {% for t in txs %}
-                                            {% set date = t.transaction_created_at|default('') %}
-                                            {% set type = t.transactionType is defined and t.transactionType ? t.transactionType.transaction_type_description : '' %}
-                                            {% set amt_raw = t.transaction_amount|default(null) %}
-                                            {% set desc = t.transaction_description|default('') %}
-                                            <tr>
-                                                <td>{{ date }}</td>
-                                                <td>{{ type }}</td>
-                                                <td>
-                                                    {% if amt_raw is not null %}
-                                                        {{ amt_raw|number_format(2, ',', '.') }}
-                                                        {% if account.currency %} {{ account.currency.currency_code }}{% endif %}
-                                                    {% endif %}
-                                                </td>
-                                                <td>{{ desc }}</td>
-                                            </tr>
-                                        {% endfor %}
-                                    </tbody>
+                                    <tbody></tbody>
                                 </table>
                             </div>
                         </div>
@@ -106,11 +73,9 @@
     <div class="modal fade" id="transactionModal" tabindex="-1" aria-labelledby="transactionModalLabel" aria-hidden="true">
         <div class="modal-dialog">
             <div class="modal-content">
-                <form method="POST" action="/accounts/{{ account.account_id }}/transactions"
-                      data-currency-code="{{ account.currency.currency_code|default('') }}"
-                      data-currency-decimals="{{ account.currency.currency_minor_units|default(2) }}"
-                      data-currency-symbol="{{ account.currency.currency_symbol|default('') }}">
-                                        <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+                <form method="POST" action="/accounts/{{ account.account_id }}/transactions">
+                    <input type="hidden" name="account_id" value="{{ account.account_id }}">
+                    <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
                     <div class="modal-header">
                         <h5 class="modal-title" id="transactionModalLabel">Nueva transacción</h5>
                         <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
@@ -131,7 +96,7 @@
                         <div class="mb-3">
                             <label for="transaction_amount_visual" class="form-label">Monto <span class="text-danger">*</span></label>
                             <div class="input-group">
-                                <span class="input-group-text" id="transaction_currency_symbol">{{ account.currency.currency_symbol|default(account.currency.currency_code|default('')) }}</span>
+                                <span class="input-group-text" id="transaction_currency_symbol"></span>
                                 <input type="text"
                                        class="form-control"
                                        id="transaction_amount_visual"
@@ -180,6 +145,5 @@
 {% block javascript %}
     <script src="/resources/js/libs/jQuery/jquery-4.0.0.min.js"></script>
     <script src="/resources/js/libs/DataTables/datatables.min.js"></script>
-    <script src="/resources/js/scripts/accounts-detail-datatable.js"></script>
     <script src="/resources/js/modules/transaction/create.js"></script>
 {% endblock %}

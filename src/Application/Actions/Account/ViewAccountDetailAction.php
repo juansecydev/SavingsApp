@@ -7,7 +7,6 @@ namespace App\Application\Actions\Account;
 use App\Application\Actions\TwigAction;
 use App\Application\Services\AccountService;
 use App\Application\Services\TransactionOperationService;
-use App\Domain\Account\Account;
 use App\Domain\TransactionOperation\TransactionOperation;
 use App\Domain\User\User;
 use App\Infrastructure\Security\CSRFValidator;
@@ -33,7 +32,7 @@ class ViewAccountDetailAction extends TwigAction
     }
 
     /**
-     * Render an owned account's detail page and available transaction operations.
+     * Render an owned account's name and the page's transaction form data.
      *
      * @return Response Account detail response or redirect when the account is unavailable.
      */
@@ -67,7 +66,10 @@ class ViewAccountDetailAction extends TwigAction
         );
 
         return $this->renderView('accounts/detail.html.twig', [
-            'account' => $this->formatAccountForView($account),
+            'account' => [
+                'account_id' => $account->getId(),
+                'account_name' => $account->getName(),
+            ],
             'csrf_token' => CSRFValidator::getCSRFToken(),
             'errors' => [],
             'transactionOperations' => $transactionOperations,
@@ -76,24 +78,5 @@ class ViewAccountDetailAction extends TwigAction
             'old_transaction_description' => '',
             'old_transaction_reference' => '',
         ]);
-    }
-
-    private function formatAccountForView(Account $account): array
-    {
-        $minorUnits = $account->getCurrencyMinorUnits() ?? 2;
-        $divisor = pow(10, max(0, $minorUnits));
-
-        return [
-            'account_id' => $account->getId(),
-            'account_name' => $account->getName(),
-            'account_amount' => (float) ($account->getBalanceMinor() / $divisor),
-            'currency' => [
-                'currency_code' => $account->getCurrencyCode(),
-                'currency_name' => $account->getCurrencyName(),
-                'currency_symbol' => $account->getCurrencySymbol(),
-                'currency_minor_units' => $account->getCurrencyMinorUnits(),
-            ],
-            'transactions' => [],
-        ];
     }
 }

@@ -7,6 +7,12 @@ document.addEventListener('DOMContentLoaded', function () {
         return;
     }
 
+    const accountIdInput = document.getElementById('account_id');
+    const csrfTokenInput = transactionForm.querySelector('input[name="csrf_token"]');
+    const accountAmount = document.getElementById('account-amount');
+    const accountDataError = document.getElementById('account-data-error');
+    const transactionsTable = document.getElementById('transactions-table');
+
     const amountInput = document.getElementById('transaction_amount_visual');
     const amountHiddenInput = document.getElementById('transaction_amount');
     const symbolLabel = document.getElementById('transaction_currency_symbol');
@@ -14,11 +20,11 @@ document.addEventListener('DOMContentLoaded', function () {
     const descriptionInput = document.getElementById('transaction_description');
     const referenceInput = document.getElementById('transaction_reference');
 
-    const currencyCode = transactionForm.dataset.currencyCode || '';
-    const currencyDecimals = parseInt(transactionForm.dataset.currencyDecimals || '2', 10);
-    const currencySymbol = transactionForm.dataset.currencySymbol || currencyCode;
-    const currencyLocale = currencyCode === 'JPY' ? 'ja-JP' : currencyCode === 'USD' ? 'en-US' : 'es-CO';
-    const currencyFormatter = new Intl.NumberFormat(currencyLocale, {
+    let currencyCode = transactionForm.dataset.currencyCode || '';
+    let currencyDecimals = Number.parseInt(transactionForm.dataset.currencyDecimals || '2', 10);
+    let currencySymbol = transactionForm.dataset.currencySymbol || currencyCode;
+    const currencyLocale = navigator.language ?? 'es-CO';
+    let currencyFormatter = new Intl.NumberFormat(currencyLocale, {
         minimumFractionDigits: currencyDecimals,
         maximumFractionDigits: currencyDecimals,
     });
@@ -95,6 +101,197 @@ document.addEventListener('DOMContentLoaded', function () {
             const normalized = formatAmountValue(String(currentValue));
             amountInput.value = formatVisibleAmount(normalized);
             amountHiddenInput.value = normalized;
+        }
+    };
+
+    const showAccountDataError = function (message) {
+        if (accountAmount) {
+            accountAmount.textContent = 'No disponible';
+        }
+        if (!accountDataError) {
+            return;
+        }
+
+        accountDataError.textContent = message;
+        accountDataError.hidden = false;
+    };
+
+    const renderTransactions = function (transactions, formatter, code) {
+        if (!transactionsTable) {
+            throw new Error('No se encontró la tabla de transacciones.');
+        }
+
+        const jquery = window.jQuery;
+        if (!jquery || !jquery.fn.DataTable) {
+            throw new Error('La librería DataTables no está disponible.');
+        }
+
+        if (jquery.fn.DataTable.isDataTable(transactionsTable)) {
+            jquery(transactionsTable).DataTable().destroy();
+        }
+
+        const rows = transactions.map(function (transaction) {
+            const amount = String(transaction.amount || '');
+
+            return [
+                String(transaction.date || ''),
+                `${String(transaction.type || '')} ${String(transaction.symbol || '')}`.trim(),
+                /^-?\d+(?:\.\d+)?$/.test(amount) ? `${formatter.format(amount)} ${code}` : '',
+                String(transaction.description || ''),
+            ];
+        });
+
+        jquery(transactionsTable).DataTable({
+            data: rows,
+            responsive: true,
+            scrollX: true,
+            paging: true,
+            pageLength: 10,
+            lengthChange: true,
+            ordering: true,
+            order: [[0, 'desc']],
+            columnDefs: [
+                {
+                    targets: '_all',
+                    render: jquery.fn.dataTable.render.text(),
+                },
+            ],
+            fixedColumns: {
+                leftColumns: 1,
+            },
+            dom: 'Bfrtip',
+            buttons: [
+                { extend: 'copyHtml5', text: 'Copiar' },
+                { extend: 'excelHtml5', text: 'Excel' },
+                { extend: 'pdfHtml5', text: 'PDF' },
+                { extend: 'print', text: 'Imprimir' },
+            ],
+            language: {
+                decimal: ',',
+                thousands: '.',
+                processing: 'Procesando...',
+                search: 'Buscar global:',
+                lengthMenu: 'Mostrar _MENU_ registros',
+                info: 'Mostrando _START_ a _END_ de _TOTAL_ registros',
+                infoEmpty: 'Mostrando 0 a 0 de 0 registros',
+                infoFiltered: '(filtrado de _MAX_ registros)',
+                infoPostFix: '',
+                loadingRecords: 'Cargando...',
+                zeroRecords: 'No se encontraron registros',
+                emptyTable: 'No hay transacciones disponibles',
+                paginate: {
+                    first: 'Primero',
+                    previous: 'Anterior',
+                    next: 'Siguiente',
+                    last: 'Último',
+                },
+                aria: {
+                    sortAscending: ': activar para ordenar ascendente',
+                    sortDescending: ': activar para ordenar descendente',
+                },
+                buttons: {
+                    copyTitle: 'Copiado al portapapeles',
+                    copySuccess: { _: '%d líneas copiadas', 1: '1 línea copiada' },
+                    copy: 'Copiar',
+                    excel: 'Excel',
+                    pdf: 'PDF',
+                    print: 'Imprimir',
+                },
+            },
+            initComplete: function () {
+                this.api().columns().every(function () {
+                    const column = this;
+                    jquery('input', column.footer()).on('keyup change clear', function () {
+                        if (column.search() !== this.value) {
+                            column.search(this.value).draw();
+                        }
+                    });
+                });
+            },
+        });
+    };
+
+    const renderAccountData = function (data) {
+        const account = data?.account;
+        const currency = account?.currency;
+        const amount = String(account?.amount ?? '');
+        const currencyCodeFromApi = String(currency?.code ?? '');
+        const decimals = Number(currency?.minorUnits);
+
+        if (
+            !accountAmount ||
+            !/^[A-Z]{3}$/.test(currencyCodeFromApi) ||
+            !/^-?\d+(?:\.\d+)?$/.test(amount) ||
+            !Number.isInteger(decimals) ||
+            decimals < 0
+        ) {
+            throw new Error('La respuesta de la cuenta no tiene un formato válido.');
+        }
+
+        currencyCode = currencyCodeFromApi;
+        currencyDecimals = decimals;
+        currencySymbol = String(currency.symbol || currencyCode);
+        transactionForm.dataset.currencyCode = currencyCode;
+        transactionForm.dataset.currencyDecimals = String(currencyDecimals);
+        transactionForm.dataset.currencySymbol = currencySymbol;
+        currencyFormatter = new Intl.NumberFormat(currencyLocale, {
+            minimumFractionDigits: currencyDecimals,
+            maximumFractionDigits: currencyDecimals,
+        });
+        updateCurrencyFormatting();
+
+        const amountFormatter = new Intl.NumberFormat(currencyLocale, {
+            style: 'currency',
+            currency: currencyCode,
+            minimumFractionDigits: currencyDecimals,
+            maximumFractionDigits: currencyDecimals,
+        });
+        accountAmount.textContent = amountFormatter.format(amount);
+
+        renderTransactions(data.transactions, currencyFormatter, currencyCode);
+
+        if (accountDataError) {
+            accountDataError.hidden = true;
+            accountDataError.textContent = '';
+        }
+    };
+
+    const loadAccountData = async function () {
+        if (!accountIdInput || !csrfTokenInput || !accountIdInput.value) {
+            showAccountDataError('No fue posible identificar la cuenta.');
+            return;
+        }
+
+        try {
+            const response = await fetch(
+                `/api/v1/account/data/${encodeURIComponent(accountIdInput.value)}`,
+                {
+                    method: 'GET',
+                    headers: {
+                        'Accept': 'application/json',
+                        'X-CSRF-Token': csrfTokenInput.value,
+                    },
+                    credentials: 'same-origin',
+                }
+            );
+
+            if (!response.headers.get('content-type')?.includes('application/json')) {
+                throw new Error('No fue posible cargar los datos. Verifica tu sesión e inténtalo de nuevo.');
+            }
+
+            const payload = await response.json();
+
+            if (!response.ok || !payload.data || payload.data.error) {
+                throw new Error(payload.data?.error || 'No fue posible cargar los datos de la cuenta.');
+            }
+
+            renderAccountData(payload.data);
+        } catch (error) {
+            showAccountDataError(
+                error instanceof Error
+                    ? error.message
+                    : 'No fue posible cargar los datos de la cuenta.'
+            );
         }
     };
 
@@ -199,4 +396,5 @@ document.addEventListener('DOMContentLoaded', function () {
     });
 
     updateCurrencyFormatting();
+    loadAccountData();
 });
