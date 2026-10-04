@@ -96,7 +96,6 @@
                         <div class="mb-3">
                             <label for="transaction_amount_visual" class="form-label">Monto <span class="text-danger">*</span></label>
                             <div class="input-group">
-                                <span class="input-group-text" id="transaction_currency_symbol"></span>
                                 <input type="text"
                                        class="form-control"
                                        id="transaction_amount_visual"
@@ -108,6 +107,7 @@
                                        required>
                                 <input type="hidden" id="transaction_amount" name="transaction_amount" value="{{ old_transaction_amount|default('') }}">
                             </div>
+                            <small id="transaction_amount_preview" class="form-text text-muted" aria-live="polite"></small>
                         </div>
 
                         <div class="mb-3">
