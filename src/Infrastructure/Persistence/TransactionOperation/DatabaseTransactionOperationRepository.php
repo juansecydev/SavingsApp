@@ -44,6 +44,32 @@ class DatabaseTransactionOperationRepository implements TransactionOperationRepo
     }
 
     /**
+     * Retrieve one transaction operation by its database identifier.
+     *
+     * @param int $id Operation identifier to look up.
+     * @return TransactionOperation|null|false The operation, null when absent, or false on retrieval failure.
+     */
+    public function findById(int $id): TransactionOperation|false|null
+    {
+        $rows = $this->queryBuilder->ownQuery(
+            'SELECT transaction_operation_id, transaction_operation_description, transaction_operation_symbol
+            FROM transaction_operations
+            WHERE transaction_operation_id = :id
+            LIMIT 1',
+            ['id' => $id],
+        );
+
+        if ($rows === false) {
+            return false;
+        }
+        if ($rows === []) {
+            return null;
+        }
+
+        return $this->mapTransactionOperation($rows[0]);
+    }
+
+    /**
      * Map a database row to its transaction-operation domain representation.
      *
      * @param array<string, mixed> $row Transaction-operation row returned by the database.

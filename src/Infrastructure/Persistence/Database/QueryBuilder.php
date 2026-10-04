@@ -194,18 +194,21 @@ class QueryBuilder
 
         try {
             if ($startedTransaction) {
+                $this->logSqlQuery('BEGIN', []);
                 $this->connection->beginTransaction();
             }
 
             $result = $operation();
 
             if ($startedTransaction) {
+                $this->logSqlQuery('COMMIT', []);
                 $this->connection->commit();
             }
 
             return $result;
         } catch (Throwable $error) {
             if ($startedTransaction && $this->connection->inTransaction()) {
+                $this->logSqlQuery('ROLLBACK', []);
                 $this->connection->rollBack();
             }
 

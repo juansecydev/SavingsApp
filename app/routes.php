@@ -19,6 +19,7 @@ use App\Application\Actions\Account\ViewCreateAccountAction;
 use App\Application\Actions\Account\CreateAccountAction;
 use App\Application\Actions\Account\ViewAccountDetailAction;
 use App\Application\Actions\Account\GetAccountDataAction;
+use App\Application\Actions\Account\AccountTransactionCreateAction;
 use Psr\Http\Message\ResponseInterface as Response;
 use Psr\Http\Message\ServerRequestInterface as Request;
 use Slim\App;
@@ -49,6 +50,8 @@ return function (App $app) {
         $group->group('/api/v1', function (Group $apiGroup) {
             $apiGroup->get('/account/data/{id}', GetAccountDataAction::class)
                 ->setName('account.data');
+            $apiGroup->post('/account/transaction/create', AccountTransactionCreateAction::class)
+                ->setName('account.transaction.create');
             $apiGroup->post('/profile-picture/process', ProcessProfilePictureAction::class)
                 ->add(ProfilePictureProcessMiddleware::class)
                 ->setName('profile-picture.process');

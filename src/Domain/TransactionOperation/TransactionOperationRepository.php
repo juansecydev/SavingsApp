@@ -15,4 +15,12 @@ interface TransactionOperationRepository
      * @return TransactionOperation[] Available operations, or an empty array when none are found.
      */
     public function findAll(): array;
+
+    /**
+     * Retrieve one operation by its database identifier.
+     *
+     * @param int $id Operation identifier to look up.
+     * @return TransactionOperation|null|false The operation, null when absent, or false on retrieval failure.
+     */
+    public function findById(int $id): TransactionOperation|false|null;
 }

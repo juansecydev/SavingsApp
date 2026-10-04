@@ -34,6 +34,7 @@ class DatabaseAccountTransactionRepository implements AccountTransactionReposito
             'SELECT
                 t.account_transaction_id,
                 t.account_transaction_title,
+                t.account_transaction_reference,
                 t.account_transaction_amount,
                 t.account_transaction_created_at,
                 o.transaction_operation_description,
@@ -47,5 +48,47 @@ class DatabaseAccountTransactionRepository implements AccountTransactionReposito
         );
 
         return is_array($rows) ? $rows : false;
+    }
+
+    /**
+     * Insert a transaction record; the caller owns the surrounding database transaction.
+     *
+     * @param int $accountId Account receiving the transaction.
+     * @param int $operationId Transaction operation identifier.
+     * @param int $amountMinor Positive amount in minor currency units.
+     * @param string $title User-provided transaction description.
+     * @param string|null $reference Optional transaction reference.
+     * @return bool True when the insert statement succeeds.
+     */
+    public function create(
+        int $accountId,
+        int $operationId,
+        int $amountMinor,
+        string $title,
+        ?string $reference
+    ): bool {
+        return $this->queryBuilder->ownQuery(
+            'INSERT INTO account_transactions (
+                account_transaction_account_id,
+                account_transaction_title,
+                account_transaction_reference,
+                account_transaction_amount,
+                account_transaction_transaction_operation_id
+            ) VALUES (
+                :account_id,
+                :title,
+                :reference,
+                :amount,
+                :operation_id
+            )',
+            [
+                'account_id' => $accountId,
+                'title' => $title,
+                'reference' => $reference,
+                'amount' => $amountMinor,
+                'operation_id' => $operationId,
+            ],
+            true
+        ) === true;
     }
 }

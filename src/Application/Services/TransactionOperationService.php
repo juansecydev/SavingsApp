@@ -28,4 +28,15 @@ class TransactionOperationService
     {
         return $this->transactionOperationRepository->findAll();
     }
+
+    /**
+     * Find a transaction operation by identifier.
+     *
+     * @param int $id Operation identifier submitted by the transaction form.
+     * @return TransactionOperation|null|false The operation, null when absent, or false on retrieval failure.
+     */
+    public function getTransactionOperationById(int $id): TransactionOperation|false|null
+    {
+        return $this->transactionOperationRepository->findById($id);
+    }
 }

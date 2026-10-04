@@ -80,6 +80,7 @@ class GetAccountDataAction extends Action
                     $currencyCode,
                 )->getAmount(),
                 'description' => (string) $row['account_transaction_title'],
+                'reference' => (string) ($row['account_transaction_reference'] ?? ''),
             ],
             $transactionRows,
         );

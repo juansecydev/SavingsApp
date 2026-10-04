@@ -50,6 +50,7 @@
                                             <th>Tipo</th>
                                             <th>Monto</th>
                                             <th>Descripción</th>
+                                            <th>Referencia</th>
                                         </tr>
                                     </thead>
                                     <tfoot>
@@ -58,6 +59,7 @@
                                             <th><input type="text" placeholder="Buscar tipo" class="form-control form-control-sm" /></th>
                                             <th><input type="text" placeholder="Buscar monto" class="form-control form-control-sm" /></th>
                                             <th><input type="text" placeholder="Buscar descripción" class="form-control form-control-sm" /></th>
+                                            <th><input type="text" placeholder="Buscar referencia" class="form-control form-control-sm" /></th>
                                         </tr>
                                     </tfoot>
                                     <tbody></tbody>
@@ -73,7 +75,7 @@
     <div class="modal fade" id="transactionModal" tabindex="-1" aria-labelledby="transactionModalLabel" aria-hidden="true">
         <div class="modal-dialog">
             <div class="modal-content">
-                <form method="POST" action="/accounts/{{ account.account_id }}/transactions">
+                <form method="POST" action="/api/v1/account/transaction/create">
                     <input type="hidden" name="account_id" value="{{ account.account_id }}">
                     <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
                     <div class="modal-header">
@@ -124,7 +126,7 @@
 
                         <div class="mb-3">
                             <label for="transaction_description" class="form-label">Descripción <span class="text-danger">*</span></label>
-                            <textarea class="form-control" id="transaction_description" name="transaction_description" rows="3" required>{{ old_transaction_description|default('') }}</textarea>
+                            <textarea class="form-control" id="transaction_description" name="transaction_description" rows="3" maxlength="30" required>{{ old_transaction_description|default('') }}</textarea>
                         </div>
 
                         <div class="mb-3">
@@ -138,6 +140,16 @@
                     </div>
                 </form>
             </div>
+        </div>
+    </div>
+
+    <div class="toast-container position-fixed top-0 end-0 p-3">
+        <div id="transaction-toast" class="toast" role="status" aria-live="polite" aria-atomic="true">
+            <div class="toast-header">
+                <strong id="transaction-toast-title" class="me-auto"></strong>
+                <button type="button" class="btn-close" data-bs-dismiss="toast" aria-label="Cerrar"></button>
+            </div>
+            <div id="transaction-toast-message" class="toast-body"></div>
         </div>
     </div>
 {% endblock %}

@@ -27,6 +27,18 @@ class AccountService
     }
 
     /**
+     * Retrieve an owned account while locking its row for a balance transaction.
+     *
+     * @param int $accountId Account identifier.
+     * @param int $userId Owner identifier.
+     * @return Account|null The locked account, or null when it is not owned by the user.
+     */
+    public function getAccountByIdForUserForUpdate(int $accountId, int $userId): ?Account
+    {
+        return $this->accountRepository->findOneByUserForUpdate($accountId, $userId);
+    }
+
+    /**
      * Convert a user-facing amount string into minor units compatible with the database.
      *
      * Supports zero, positive amounts, and negative values.
@@ -48,6 +60,18 @@ class AccountService
     public function createAccount(int $userId, string $title, int $currencyId, int $balanceMinor): bool
     {
         return $this->accountRepository->createAccount($userId, $title, $currencyId, $balanceMinor);
+    }
+
+    /**
+     * Update an account's balance in minor units.
+     *
+     * @param int $accountId Account to update.
+     * @param int $balanceMinor New balance; negative balances are allowed.
+     * @return bool True when the update statement succeeds.
+     */
+    public function updateBalance(int $accountId, int $balanceMinor): bool
+    {
+        return $this->accountRepository->updateBalance($accountId, $balanceMinor);
     }
 
     private function normalizeAmount(string $amount): ?string

@@ -69,6 +69,44 @@ class DatabaseAccountRepository implements AccountRepository
         return $this->mapAccount($rows[0]);
     }
 
+    /**
+     * Retrieve and lock an account belonging to a user for an atomic balance update.
+     *
+     * @param int $accountId Account identifier.
+     * @param int $userId Owner identifier.
+     * @return Account|null The locked account, or null when it is not owned by the user.
+     */
+    public function findOneByUserForUpdate(int $accountId, int $userId): ?Account
+    {
+        $rows = $this->queryBuilder->ownQuery(
+            'SELECT
+                a.account_id,
+                a.account_title AS account_name,
+                a.account_balance,
+                a.account_user_id,
+                a.account_currency_id,
+                c.currency_code,
+                c.currency_name,
+                c.currency_symbol,
+                c.currency_minor_units
+            FROM accounts a
+            INNER JOIN currencies c ON c.currency_id = a.account_currency_id
+            WHERE a.account_id = :account_id AND a.account_user_id = :user_id
+            LIMIT 1
+            FOR UPDATE',
+            [
+                'account_id' => $accountId,
+                'user_id' => $userId,
+            ],
+        );
+
+        if (!is_array($rows) || $rows === []) {
+            return null;
+        }
+
+        return $this->mapAccount($rows[0]);
+    }
+
     public function createAccount(int $userId, string $title, int $currencyId, int $balanceMinor): bool
     {
         return $this->queryBuilder->ownQuery(
@@ -80,8 +118,27 @@ class DatabaseAccountRepository implements AccountRepository
                 'user_id' => $userId,
                 'currency_id' => $currencyId,
             ],
-            true,
+            true
         );
+    }
+
+    /**
+     * Update the stored balance for an account.
+     *
+     * @param int $accountId Account to update.
+     * @param int $balanceMinor New balance in minor currency units.
+     * @return bool True when the update statement succeeds.
+     */
+    public function updateBalance(int $accountId, int $balanceMinor): bool
+    {
+        return $this->queryBuilder->ownQuery(
+            'UPDATE accounts SET account_balance = :balance WHERE account_id = :account_id',
+            [
+                'balance' => $balanceMinor,
+                'account_id' => $accountId,
+            ],
+            true
+        ) === true;
     }
 
     private function mapAccount(array $row): Account

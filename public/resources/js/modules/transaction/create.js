@@ -12,6 +12,9 @@ document.addEventListener('DOMContentLoaded', function () {
     const accountAmount = document.getElementById('account-amount');
     const accountDataError = document.getElementById('account-data-error');
     const transactionsTable = document.getElementById('transactions-table');
+    const toastElement = document.getElementById('transaction-toast');
+    const toastTitle = document.getElementById('transaction-toast-title');
+    const toastMessage = document.getElementById('transaction-toast-message');
 
     const amountInput = document.getElementById('transaction_amount_visual');
     const amountHiddenInput = document.getElementById('transaction_amount');
@@ -146,6 +149,7 @@ document.addEventListener('DOMContentLoaded', function () {
     const showAccountDataError = function (message) {
         if (accountAmount) {
             accountAmount.textContent = 'No disponible';
+            accountAmount.classList.remove('text-success', 'text-danger');
         }
         if (!accountDataError) {
             return;
@@ -153,6 +157,18 @@ document.addEventListener('DOMContentLoaded', function () {
 
         accountDataError.textContent = message;
         accountDataError.hidden = false;
+    };
+
+    const showToast = function (title, message, type) {
+        if (!toastElement || !toastTitle || !toastMessage || !window.bootstrap?.Toast) {
+            throw new Error('No se pudo mostrar la notificación de la transacción.');
+        }
+
+        toastElement.classList.remove('text-bg-success', 'text-bg-danger', 'text-bg-warning');
+        toastElement.classList.add(`text-bg-${type}`);
+        toastTitle.textContent = title;
+        toastMessage.textContent = message;
+        window.bootstrap.Toast.getOrCreateInstance(toastElement).show();
     };
 
     const renderTransactions = function (transactions, formatter, code) {
@@ -177,6 +193,7 @@ document.addEventListener('DOMContentLoaded', function () {
                 `${String(transaction.type || '')} ${String(transaction.symbol || '')}`.trim(),
                 /^-?\d+(?:\.\d+)?$/.test(amount) ? `${formatter.format(amount)} ${code}` : '',
                 String(transaction.description || ''),
+                String(transaction.reference || ''),
             ];
         });
 
@@ -281,6 +298,8 @@ document.addEventListener('DOMContentLoaded', function () {
         updateAmountPreview();
 
         accountAmount.textContent = currencyFormatter.format(amount);
+        accountAmount.classList.toggle('text-danger', Number(amount) < 0);
+        accountAmount.classList.toggle('text-success', Number(amount) >= 0);
 
         const transactionAmountFormatter = new Intl.NumberFormat(currencyLocale, {
             minimumFractionDigits: currencyDecimals,
@@ -297,7 +316,7 @@ document.addEventListener('DOMContentLoaded', function () {
     const loadAccountData = async function () {
         if (!accountIdInput || !csrfTokenInput || !accountIdInput.value) {
             showAccountDataError('No fue posible identificar la cuenta.');
-            return;
+            return false;
         }
 
         try {
@@ -324,12 +343,14 @@ document.addEventListener('DOMContentLoaded', function () {
             }
 
             renderAccountData(payload.data);
+            return true;
         } catch (error) {
             showAccountDataError(
                 error instanceof Error
                     ? error.message
                     : 'No fue posible cargar los datos de la cuenta.'
             );
+            return false;
         }
     };
 
@@ -344,6 +365,10 @@ document.addEventListener('DOMContentLoaded', function () {
         const pattern = new RegExp(`^\\d+(?:\\.\\d{0,${currencyDecimals}})?$`);
         if (!pattern.test(String(normalizedValue))) {
             setError(amountInput, 'El monto debe ser numérico.');
+            return false;
+        }
+        if (Number(normalizedValue) <= 0) {
+            setError(amountInput, 'El monto debe ser mayor que cero.');
             return false;
         }
 
@@ -410,14 +435,76 @@ document.addEventListener('DOMContentLoaded', function () {
     referenceInput.addEventListener('input', validateReference);
 
     transactionForm.addEventListener('submit', function (event) {
+        event.preventDefault();
+
         const isAmountValid = validateAmount();
         const isOperationValid = validateOperation();
         const isDescriptionValid = validateDescription();
         const isReferenceValid = validateReference();
 
         if (!isAmountValid || !isOperationValid || !isDescriptionValid || !isReferenceValid) {
-            event.preventDefault();
+            return;
         }
+
+        const submitButton = transactionForm.querySelector('button[type="submit"]');
+        if (submitButton) {
+            submitButton.disabled = true;
+        }
+
+        const submitTransaction = async function () {
+            try {
+                const response = await fetch(transactionForm.action, {
+                    method: 'POST',
+                    headers: {
+                        'Accept': 'application/json',
+                        'Content-Type': 'application/x-www-form-urlencoded;charset=UTF-8',
+                        'X-CSRF-Token': csrfTokenInput?.value || '',
+                    },
+                    body: new URLSearchParams(new FormData(transactionForm)),
+                    credentials: 'same-origin',
+                });
+
+                if (!response.headers.get('content-type')?.includes('application/json')) {
+                    throw new Error('No fue posible procesar la transacción. Verifica tu sesión e inténtalo de nuevo.');
+                }
+
+                const payload = await response.json();
+                if (!response.ok || !payload.data || payload.data.error) {
+                    throw new Error(payload.data?.error || 'No fue posible crear la transacción.');
+                }
+
+                transactionForm.reset();
+                updateHiddenAmount();
+                updateCurrencyFormatting();
+
+                const refreshed = await loadAccountData();
+                const modalElement = document.getElementById('transactionModal');
+                const modal = modalElement && window.bootstrap?.Modal
+                    ? window.bootstrap.Modal.getOrCreateInstance(modalElement)
+                    : null;
+                modal?.hide();
+
+                showToast(
+                    refreshed ? 'Transacción creada' : 'Transacción creada',
+                    refreshed
+                        ? 'La cuenta y sus transacciones se actualizaron correctamente.'
+                        : 'La transacción se guardó, pero no se pudieron actualizar los datos de la cuenta.',
+                    refreshed ? 'success' : 'warning'
+                );
+            } catch (error) {
+                showToast(
+                    'Error',
+                    error instanceof Error ? error.message : 'No fue posible crear la transacción.',
+                    'danger'
+                );
+            } finally {
+                if (submitButton) {
+                    submitButton.disabled = false;
+                }
+            }
+        };
+
+        void submitTransaction();
     });
 
     updateCurrencyFormatting();

@@ -73,6 +73,7 @@ CREATE TABLE `account_transactions` (
   `account_transaction_id` BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
   `account_transaction_account_id` INT UNSIGNED NULL,
   `account_transaction_title` VARCHAR(30) NOT NULL,
+  `account_transaction_reference` VARCHAR(50) NULL,
   `account_transaction_category_id` JSON NULL,
   `account_transaction_amount` BIGINT UNSIGNED NOT NULL,
   `account_transaction_transaction_operation_id` TINYINT UNSIGNED NOT NULL,
