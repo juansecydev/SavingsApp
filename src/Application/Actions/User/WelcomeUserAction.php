@@ -45,6 +45,7 @@ class WelcomeUserAction extends TwigAction
             ],
             'accounts' => array_map(fn (Account $account): array => $this->formatAccountForView($account), $accounts),
             'csrf_token' => CSRFValidator::getCSRFToken(),
+            'account_delete_failed' => ($this->request->getQueryParams()['account_delete'] ?? null) === 'failed',
         ]);
     }
 

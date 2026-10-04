@@ -18,6 +18,7 @@ use App\Application\Actions\User\GetProfilePictureAction;
 use App\Application\Actions\Account\ViewCreateAccountAction;
 use App\Application\Actions\Account\CreateAccountAction;
 use App\Application\Actions\Account\ViewAccountDetailAction;
+use App\Application\Actions\Account\DeleteAccountAction;
 use App\Application\Actions\Account\GetAccountDataAction;
 use App\Application\Actions\Account\AccountTransactionCreateAction;
 use Psr\Http\Message\ResponseInterface as Response;
@@ -46,6 +47,8 @@ return function (App $app) {
         $group->get('/accounts', ViewCreateAccountAction::class)->setName('account');
         $group->post('/accounts', CreateAccountAction::class)->setName('account');
         $group->get('/accounts/{id}', ViewAccountDetailAction::class)->setName('account.detail');
+        $group->delete('/accounts/{id}', DeleteAccountAction::class)->setName('account.delete');
+        $group->post('/accounts/{id}', DeleteAccountAction::class)->setName('account.delete.form');
         
         $group->group('/api/v1', function (Group $apiGroup) {
             $apiGroup->get('/account/data/{id}', GetAccountDataAction::class)

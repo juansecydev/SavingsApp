@@ -54,7 +54,7 @@ CREATE TABLE `users` (
   UNIQUE KEY `uq_user_email` (`user_email`),
   UNIQUE KEY `uq_user_profile_picture` (`user_profile_picture`),
   CONSTRAINT `chk_user_email` CHECK (`user_email` LIKE '%@%'),
-  CONSTRAINT `fk_users_role` FOREIGN KEY (`user_role_id`) REFERENCES `roles` (`role_id`) ON UPDATE CASCADE ON DELETE RESTRICT
+  CONSTRAINT `fk_users_role` FOREIGN KEY (`user_role_id`) REFERENCES `roles` (`role_id`) ON UPDATE CASCADE ON DELETE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 CREATE TABLE `accounts` (
@@ -65,8 +65,8 @@ CREATE TABLE `accounts` (
   `account_currency_id` TINYINT UNSIGNED NOT NULL,
   `account_created_at` TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
   PRIMARY KEY (`account_id`),
-  CONSTRAINT `fk_accounts_user` FOREIGN KEY (`account_user_id`) REFERENCES `users` (`user_id`) ON UPDATE CASCADE ON DELETE RESTRICT,
-  CONSTRAINT `fk_accounts_currency` FOREIGN KEY (`account_currency_id`) REFERENCES `currencies` (`currency_id`) ON UPDATE CASCADE ON DELETE RESTRICT
+  CONSTRAINT `fk_accounts_user` FOREIGN KEY (`account_user_id`) REFERENCES `users` (`user_id`) ON UPDATE CASCADE ON DELETE CASCADE,
+  CONSTRAINT `fk_accounts_currency` FOREIGN KEY (`account_currency_id`) REFERENCES `currencies` (`currency_id`) ON UPDATE CASCADE ON DELETE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 CREATE TABLE `account_transactions` (
@@ -79,8 +79,8 @@ CREATE TABLE `account_transactions` (
   `account_transaction_transaction_operation_id` TINYINT UNSIGNED NOT NULL,
   `account_transaction_created_at` TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
   PRIMARY KEY (`account_transaction_id`),
-  CONSTRAINT `fk_account_transactions_account` FOREIGN KEY (`account_transaction_account_id`) REFERENCES `accounts` (`account_id`) ON UPDATE CASCADE ON DELETE RESTRICT,
-  CONSTRAINT `fk_account_transactions_operation` FOREIGN KEY (`account_transaction_transaction_operation_id`) REFERENCES `transaction_operations` (`transaction_operation_id`) ON UPDATE CASCADE ON DELETE RESTRICT
+  CONSTRAINT `fk_account_transactions_account` FOREIGN KEY (`account_transaction_account_id`) REFERENCES `accounts` (`account_id`) ON UPDATE CASCADE ON DELETE CASCADE,
+  CONSTRAINT `fk_account_transactions_operation` FOREIGN KEY (`account_transaction_transaction_operation_id`) REFERENCES `transaction_operations` (`transaction_operation_id`) ON UPDATE CASCADE ON DELETE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 INSERT INTO `roles` (`role_name`) VALUES ('Administrator'), ('Normal');

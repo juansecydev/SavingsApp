@@ -80,6 +80,18 @@ class AccountService
         return $this->accountRepository->updateBalance($accountId, $balanceMinor);
     }
 
+    /**
+     * Delete an account for its owner; related transactions are removed by the database cascade.
+     *
+     * @param int $accountId Account identifier.
+     * @param int $userId Owner identifier.
+     * @return bool True when the delete statement executes successfully.
+     */
+    public function deleteAccountForUser(int $accountId, int $userId): bool
+    {
+        return $this->accountRepository->deleteOneByUser($accountId, $userId);
+    }
+
     private function normalizeAmount(string $amount): ?string
     {
         $normalized = trim((string) $amount);

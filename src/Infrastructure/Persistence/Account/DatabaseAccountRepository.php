@@ -158,6 +158,27 @@ class DatabaseAccountRepository implements AccountRepository
         ) === true;
     }
 
+    /**
+     * Delete an account only when it belongs to the specified user.
+     *
+     * The account_transactions foreign key removes associated transactions by cascade.
+     *
+     * @param int $accountId Account identifier.
+     * @param int $userId Owner identifier.
+     * @return bool True when the delete statement executes successfully.
+     */
+    public function deleteOneByUser(int $accountId, int $userId): bool
+    {
+        return $this->queryBuilder->ownQuery(
+            'DELETE FROM accounts WHERE account_id = :account_id AND account_user_id = :user_id',
+            [
+                'account_id' => $accountId,
+                'user_id' => $userId,
+            ],
+            true
+        ) === true;
+    }
+
     private function mapAccount(array $row): Account
     {
         return new Account(

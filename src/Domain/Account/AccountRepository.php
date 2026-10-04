@@ -46,4 +46,15 @@ interface AccountRepository
      * @return bool True when the update statement succeeds.
      */
     public function updateBalance(int $accountId, int $balanceMinor): bool;
+
+    /**
+     * Delete one account belonging to the specified user.
+     *
+     * Related account transactions are removed by the database foreign-key cascade.
+     *
+     * @param int $accountId Account identifier.
+     * @param int $userId Owner identifier.
+     * @return bool True when the delete statement executes successfully.
+     */
+    public function deleteOneByUser(int $accountId, int $userId): bool;
 }

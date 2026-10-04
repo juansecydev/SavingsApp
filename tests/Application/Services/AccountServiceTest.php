@@ -27,4 +27,17 @@ class AccountServiceTest extends TestCase
         $this->expectException(InvalidArgumentException::class);
         $service->convertAmountToMinorUnits('10,50,20', 'COP');
     }
+
+    public function testDeleteAccountForUserDelegatesToRepository(): void
+    {
+        $repository = $this->createMock(AccountRepository::class);
+        $repository->expects($this->once())
+            ->method('deleteOneByUser')
+            ->with(12, 34)
+            ->willReturn(true);
+
+        $service = new AccountService($repository);
+
+        $this->assertTrue($service->deleteAccountForUser(12, 34));
+    }
 }
