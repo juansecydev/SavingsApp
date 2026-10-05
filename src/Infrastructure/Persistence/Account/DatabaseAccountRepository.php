@@ -93,7 +93,8 @@ class DatabaseAccountRepository implements AccountRepository
             INNER JOIN currencies c ON c.currency_id = a.account_currency_id
             WHERE a.account_id = :account_id AND a.account_user_id = :user_id
             LIMIT 1
-            FOR UPDATE',
+            ',
+            // For now, by sqlite limitations, the FOR UPDATE clause is ignored, but it is included for future compatibility with other databases.
             [
                 'account_id' => $accountId,
                 'user_id' => $userId,

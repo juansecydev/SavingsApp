@@ -70,7 +70,8 @@ class DatabaseAccountTransactionRepository implements AccountTransactionReposito
             WHERE t.account_transaction_id = :transaction_id
                 AND t.account_transaction_account_id = :account_id
             LIMIT 1
-            FOR UPDATE',
+            ',
+            // For now, by sqlite limitations, the FOR UPDATE clause is ignored, but it is included for future compatibility with other databases.
             [
                 'transaction_id' => $transactionId,
                 'account_id' => $accountId,

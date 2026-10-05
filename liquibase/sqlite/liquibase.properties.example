@@ -1,0 +1,5 @@
+# Path to the changelog file containing your database migrations
+changeLogFile=changelog-master.sql
+
+# The JDBC connection URL for your MySQL database
+url=jdbc:sqlite:your_db_name.sqlite
