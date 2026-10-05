@@ -1,7 +1,7 @@
 {% extends "base.html.twig" %}
 
 {% block title %}
-    Detalle de cuenta - SavingsApp
+    Detalle de cuenta - {{ account.account_name }}
 {% endblock %}
 
 {% block stylesheets %}
@@ -11,7 +11,7 @@
 {% block content %}
     <div class="container py-5">
         <div class="row justify-content-center">
-            <div class="col-12 col-md-8">
+            <div class="col-12 col-md-10 col-xl-11">
                 <div class="card shadow-sm">
                     <div class="card-body">
                         <div class="d-flex justify-content-between align-items-center mb-4">
@@ -51,6 +51,7 @@
                                             <th>Monto</th>
                                             <th>Descripción</th>
                                             <th>Referencia</th>
+                                            <th>Acciones</th>
                                         </tr>
                                     </thead>
                                     <tfoot>
@@ -60,6 +61,7 @@
                                             <th><input type="text" placeholder="Buscar monto" class="form-control form-control-sm" /></th>
                                             <th><input type="text" placeholder="Buscar descripción" class="form-control form-control-sm" /></th>
                                             <th><input type="text" placeholder="Buscar referencia" class="form-control form-control-sm" /></th>
+                                            <th></th>
                                         </tr>
                                     </tfoot>
                                     <tbody></tbody>
@@ -139,6 +141,24 @@
                         <button type="submit" class="btn btn-primary">Crear</button>
                     </div>
                 </form>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal fade" id="deleteTransactionModal" tabindex="-1" aria-labelledby="deleteTransactionModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-sm modal-dialog-centered">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="deleteTransactionModalLabel">Eliminar transacción</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
+                </div>
+                <div class="modal-body">
+                    ¿Estás seguro de que deseas eliminar esta transacción?
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Cancelar</button>
+                    <button type="button" class="btn btn-danger" id="confirm-delete-transaction">Eliminar</button>
+                </div>
             </div>
         </div>
     </div>

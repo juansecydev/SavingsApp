@@ -97,6 +97,105 @@ class AccountTransactionServiceTest extends TestCase
     }
 
     /**
+     * Verify deleting an income transaction subtracts its amount and removes its record.
+     */
+    public function testDeleteIncomeTransactionReversesBalanceAndDeletesRecord(): void
+    {
+        $account = $this->createMock(AccountService::class);
+        $account->expects($this->once())
+            ->method('getAccountByIdForUserForUpdate')
+            ->with(12, 7)
+            ->willReturn(new Account(12, 'Main', 3500, 7, 1, 'USD'));
+        $account->expects($this->once())
+            ->method('updateBalance')
+            ->with(12, 1000)
+            ->willReturn(true);
+
+        $repository = $this->createMock(AccountTransactionRepository::class);
+        $repository->expects($this->once())
+            ->method('findByIdForAccount')
+            ->with(81, 12)
+            ->willReturn([
+                'account_transaction_amount' => 2500,
+                'transaction_operation_symbol' => '+',
+            ]);
+        $repository->expects($this->once())
+            ->method('deleteForAccount')
+            ->with(81, 12)
+            ->willReturn(true);
+
+        $service = new AccountTransactionService($repository, $account, $this->createQueryBuilderMock());
+
+        $this->assertTrue($service->deleteTransactionForUser(7, 12, 81));
+    }
+
+    /**
+     * Verify deleting an expense transaction adds its amount back to the balance.
+     */
+    public function testDeleteExpenseTransactionReversesBalance(): void
+    {
+        $account = $this->createMock(AccountService::class);
+        $account->method('getAccountByIdForUserForUpdate')
+            ->willReturn(new Account(12, 'Main', 1000, 7, 1, 'USD'));
+        $account->expects($this->once())
+            ->method('updateBalance')
+            ->with(12, 3500)
+            ->willReturn(true);
+
+        $repository = $this->createMock(AccountTransactionRepository::class);
+        $repository->method('findByIdForAccount')->willReturn([
+            'account_transaction_amount' => 2500,
+            'transaction_operation_symbol' => '-',
+        ]);
+        $repository->expects($this->once())->method('deleteForAccount')->willReturn(true);
+
+        $service = new AccountTransactionService($repository, $account, $this->createQueryBuilderMock());
+
+        $this->assertTrue($service->deleteTransactionForUser(7, 12, 81));
+    }
+
+    /**
+     * Verify a transaction not owned by the account is not changed.
+     */
+    public function testDeleteTransactionReturnsNullWhenTransactionDoesNotBelongToAccount(): void
+    {
+        $account = $this->createMock(AccountService::class);
+        $account->method('getAccountByIdForUserForUpdate')
+            ->willReturn(new Account(12, 'Main', 1000, 7, 1, 'USD'));
+        $account->expects($this->never())->method('updateBalance');
+
+        $repository = $this->createMock(AccountTransactionRepository::class);
+        $repository->expects($this->once())->method('findByIdForAccount')->willReturn(null);
+        $repository->expects($this->never())->method('deleteForAccount');
+
+        $service = new AccountTransactionService($repository, $account, $this->createQueryBuilderMock());
+
+        $this->assertNull($service->deleteTransactionForUser(7, 12, 81));
+    }
+
+    /**
+     * Verify a balance update failure rolls back the transaction deletion.
+     */
+    public function testDeleteTransactionRollsBackWhenBalanceUpdateFails(): void
+    {
+        $account = $this->createMock(AccountService::class);
+        $account->method('getAccountByIdForUserForUpdate')
+            ->willReturn(new Account(12, 'Main', 3500, 7, 1, 'USD'));
+        $account->method('updateBalance')->willReturn(false);
+
+        $repository = $this->createMock(AccountTransactionRepository::class);
+        $repository->method('findByIdForAccount')->willReturn([
+            'account_transaction_amount' => 2500,
+            'transaction_operation_symbol' => '+',
+        ]);
+        $repository->expects($this->once())->method('deleteForAccount')->willReturn(true);
+
+        $service = new AccountTransactionService($repository, $account, $this->createQueryBuilderMock());
+
+        $this->assertFalse($service->deleteTransactionForUser(7, 12, 81));
+    }
+
+    /**
      * Verify account creation records a positive opening balance in the same transaction.
      */
     public function testCreateAccountWithOpeningTransactionRecordsPositiveBalance(): void

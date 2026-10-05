@@ -175,4 +175,64 @@ class AccountTransactionService
 
         return $result === true;
     }
+
+    /**
+     * Delete a transaction owned by the user and reverse its effect on the account balance atomically.
+     *
+     * @param int $userId Authenticated account owner.
+     * @param int $accountId Account that must own the transaction.
+     * @param int $transactionId Transaction to remove.
+     * @return bool|null True when deletion commits, null when the account or transaction is not found,
+     *        and false when persistence or balance processing fails.
+     */
+    public function deleteTransactionForUser(int $userId, int $accountId, int $transactionId): bool|null
+    {
+        $result = $this->queryBuilder->transaction(function () use ($userId, $accountId, $transactionId): ?bool {
+            $account = $this->accountService->getAccountByIdForUserForUpdate($accountId, $userId);
+            if (!$account instanceof Account) {
+                return null;
+            }
+
+            $transaction = $this->accountTransactionRepository->findByIdForAccount($transactionId, $accountId);
+            if ($transaction === false) {
+                throw new RuntimeException('Unable to retrieve the account transaction.');
+            }
+            if ($transaction === null) {
+                return null;
+            }
+
+            $amountMinor = filter_var($transaction['account_transaction_amount'] ?? null, FILTER_VALIDATE_INT);
+            $symbol = $transaction['transaction_operation_symbol'] ?? null;
+            if ($amountMinor === false || $amountMinor <= 0 || !is_string($symbol)) {
+                throw new RuntimeException('The account transaction data is invalid.');
+            }
+
+            $currencyCode = $account->getCurrencyCode();
+            if ($currencyCode === null || $currencyCode === '') {
+                throw new RuntimeException('Account currency is unavailable.');
+            }
+
+            $balance = Money::ofMinor($account->getBalanceMinor(), $currencyCode);
+            $amount = Money::ofMinor($amountMinor, $currencyCode);
+            if ($symbol === '+') {
+                $newBalance = $balance->minus($amount);
+            } elseif ($symbol === '-') {
+                $newBalance = $balance->plus($amount);
+            } else {
+                throw new RuntimeException('Unsupported transaction operation symbol.');
+            }
+
+            if (!$this->accountTransactionRepository->deleteForAccount($transactionId, $accountId)) {
+                throw new RuntimeException('Unable to delete the account transaction.');
+            }
+
+            if (!$this->accountService->updateBalance($accountId, $newBalance->getMinorAmount()->toInt())) {
+                throw new RuntimeException('Unable to reverse the account transaction balance.');
+            }
+
+            return true;
+        });
+
+        return $result === true ? true : ($result === null ? null : false);
+    }
 }

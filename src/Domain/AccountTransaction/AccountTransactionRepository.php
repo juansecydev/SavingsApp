@@ -15,6 +15,16 @@ interface AccountTransactionRepository
     public function findByAccountId(int $accountId): array|false;
 
     /**
+     * Retrieve one transaction and its operation for the specified account.
+     *
+     * @param int $transactionId Transaction identifier.
+     * @param int $accountId Account that must own the transaction.
+     * @return array<string, mixed>|null|false Transaction data, null when it does not belong to the account,
+     *        or false when retrieval fails.
+     */
+    public function findByIdForAccount(int $transactionId, int $accountId): array|null|false;
+
+    /**
      * Insert a transaction record for an account.
      *
      * @param int $accountId Account receiving the transaction.
@@ -31,4 +41,13 @@ interface AccountTransactionRepository
         string $title,
         ?string $reference
     ): bool;
+
+    /**
+     * Delete one transaction belonging to the specified account.
+     *
+     * @param int $transactionId Transaction identifier.
+     * @param int $accountId Account that must own the transaction.
+     * @return bool True when the delete statement succeeds.
+     */
+    public function deleteForAccount(int $transactionId, int $accountId): bool;
 }

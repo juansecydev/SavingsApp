@@ -51,6 +51,40 @@ class DatabaseAccountTransactionRepository implements AccountTransactionReposito
     }
 
     /**
+     * Retrieve one account-owned transaction and its operation while locking the row.
+     *
+     * @param int $transactionId Transaction identifier.
+     * @param int $accountId Account that must own the transaction.
+     * @return array<string, mixed>|null|false Transaction data, null when absent, or false on query failure.
+     */
+    public function findByIdForAccount(int $transactionId, int $accountId): array|null|false
+    {
+        $rows = $this->queryBuilder->ownQuery(
+            'SELECT
+                t.account_transaction_id,
+                t.account_transaction_amount,
+                o.transaction_operation_symbol
+            FROM account_transactions t
+            INNER JOIN transaction_operations o
+                ON o.transaction_operation_id = t.account_transaction_transaction_operation_id
+            WHERE t.account_transaction_id = :transaction_id
+                AND t.account_transaction_account_id = :account_id
+            LIMIT 1
+            FOR UPDATE',
+            [
+                'transaction_id' => $transactionId,
+                'account_id' => $accountId,
+            ],
+        );
+
+        if ($rows === false) {
+            return false;
+        }
+
+        return $rows[0] ?? null;
+    }
+
+    /**
      * Insert a transaction record; the caller owns the surrounding database transaction.
      *
      * @param int $accountId Account receiving the transaction.
@@ -87,6 +121,27 @@ class DatabaseAccountTransactionRepository implements AccountTransactionReposito
                 'reference' => $reference,
                 'amount' => $amountMinor,
                 'operation_id' => $operationId,
+            ],
+            true
+        ) === true;
+    }
+
+    /**
+     * Delete an account-owned transaction; the caller owns the surrounding database transaction.
+     *
+     * @param int $transactionId Transaction identifier.
+     * @param int $accountId Account that must own the transaction.
+     * @return bool True when the delete statement succeeds.
+     */
+    public function deleteForAccount(int $transactionId, int $accountId): bool
+    {
+        return $this->queryBuilder->ownQuery(
+            'DELETE FROM account_transactions
+            WHERE account_transaction_id = :transaction_id
+                AND account_transaction_account_id = :account_id',
+            [
+                'transaction_id' => $transactionId,
+                'account_id' => $accountId,
             ],
             true
         ) === true;

@@ -15,6 +15,9 @@ document.addEventListener('DOMContentLoaded', function () {
     const toastElement = document.getElementById('transaction-toast');
     const toastTitle = document.getElementById('transaction-toast-title');
     const toastMessage = document.getElementById('transaction-toast-message');
+    const deleteTransactionModalElement = document.getElementById('deleteTransactionModal');
+    const confirmDeleteTransactionButton = document.getElementById('confirm-delete-transaction');
+    let pendingDeleteButton = null;
 
     const amountInput = document.getElementById('transaction_amount_visual');
     const amountHiddenInput = document.getElementById('transaction_amount');
@@ -202,6 +205,9 @@ document.addEventListener('DOMContentLoaded', function () {
                 /^-?\d+(?:\.\d+)?$/.test(amount) ? `${formatter.format(amount)} ${code}` : '',
                 String(transaction.description || ''),
                 String(transaction.reference || ''),
+                {
+                    id: Number(String(transaction.id ?? transaction.account_transaction_id ?? '')),
+                },
             ];
         });
 
@@ -239,6 +245,23 @@ document.addEventListener('DOMContentLoaded', function () {
                         }
 
                         return `<i class="bi ${presentation.icon}" aria-hidden="true"></i> ${presentation.label}`;
+                    },
+                },
+                {
+                    targets: 5,
+                    searchable: false,
+                    orderable: false,
+                    exportable: false,
+                    className: 'text-center',
+                    render: function (data, type) {
+                        const transactionId = typeof data === 'object' && data !== null
+                            ? data.id
+                            : Number.NaN;
+                        if (type !== 'display' || !Number.isSafeInteger(transactionId) || transactionId <= 0) {
+                            return '';
+                        }
+
+                        return `<button type="button" class="btn btn-outline-danger btn-sm js-delete-transaction" data-transaction-id="${transactionId}" aria-label="Eliminar transacción ${transactionId}" title="Eliminar transacción"><i class="bi bi-trash-fill" aria-hidden="true"></i> Eliminar</button>`;
                     },
                 },
             ],
@@ -383,6 +406,119 @@ document.addEventListener('DOMContentLoaded', function () {
             return false;
         }
     };
+
+    /**
+     * Delete a transaction using its DataTables row ID, falling back to its button data attribute.
+     *
+     * @param {HTMLButtonElement} deleteButton Button clicked for the transaction.
+     * @returns {Promise<void>} Completes after showing the result and refreshing account data.
+     */
+    const deleteTransaction = async function (deleteButton) {
+        const dataTable = window.jQuery?.fn?.DataTable?.isDataTable(transactionsTable)
+            ? window.jQuery(transactionsTable).DataTable()
+            : null;
+        const tableRow = deleteButton.closest('tr');
+        const tableRowData = dataTable && tableRow ? dataTable.row(tableRow).data() : null;
+        const rowTransaction = Array.isArray(tableRowData) ? tableRowData[5] : null;
+        const transactionId = Number.isSafeInteger(rowTransaction?.id) && rowTransaction.id > 0
+            ? rowTransaction.id
+            : Number(deleteButton.dataset.transactionId);
+        const accountId = accountIdInput?.value.trim();
+
+        if (!accountId || !/^\d+$/.test(accountId) || !Number.isSafeInteger(transactionId) || transactionId <= 0) {
+            showToast('Error', 'No fue posible identificar la cuenta o la transacción.', 'danger');
+            return;
+        }
+
+        if (!csrfTokenInput?.value) {
+            showToast('Error', 'Tu sesión expiró. Actualiza la página e inténtalo de nuevo.', 'danger');
+            return;
+        }
+
+        deleteButton.disabled = true;
+        try {
+            const response = await fetch(
+                `/api/v1/account/${encodeURIComponent(accountId)}/transaction/${encodeURIComponent(String(transactionId))}`,
+                {
+                    method: 'DELETE',
+                    headers: {
+                        'Accept': 'application/json',
+                        'X-CSRF-Token': csrfTokenInput.value,
+                    },
+                    credentials: 'same-origin',
+                }
+            );
+
+            if (!response.headers.get('content-type')?.includes('application/json')) {
+                throw new Error('No fue posible eliminar la transacción. Verifica tu sesión e inténtalo de nuevo.');
+            }
+
+            const payload = await response.json();
+            if (!response.ok || !payload.data || payload.data.error) {
+                throw new Error(payload.data?.error || 'No fue posible eliminar la transacción.');
+            }
+
+            const refreshed = await loadAccountData();
+            showToast(
+                'Transacción eliminada',
+                refreshed
+                    ? 'La cuenta y sus transacciones se actualizaron correctamente.'
+                    : 'La transacción se eliminó, pero no se pudieron actualizar los datos de la cuenta.',
+                refreshed ? 'success' : 'warning'
+            );
+        } catch (error) {
+            showToast(
+                'Error',
+                error instanceof Error ? error.message : 'No fue posible eliminar la transacción.',
+                'danger'
+            );
+        } finally {
+            if (deleteButton.isConnected) {
+                deleteButton.disabled = false;
+            }
+        }
+    };
+
+    if (transactionsTable) {
+        transactionsTable.addEventListener('click', function (event) {
+            const target = event.target;
+            if (!(target instanceof Element)) {
+                return;
+            }
+
+            const deleteButton = target.closest('.js-delete-transaction');
+            if (!(deleteButton instanceof HTMLButtonElement) || !transactionsTable.contains(deleteButton)) {
+                return;
+            }
+            event.preventDefault();
+
+            if (!deleteTransactionModalElement || !window.bootstrap?.Modal) {
+                showToast('Error', 'No se pudo abrir la confirmación para eliminar la transacción.', 'danger');
+                return;
+            }
+
+            pendingDeleteButton = deleteButton;
+            window.bootstrap.Modal.getOrCreateInstance(deleteTransactionModalElement).show();
+        });
+    }
+
+    if (deleteTransactionModalElement && confirmDeleteTransactionButton && window.bootstrap?.Modal) {
+        deleteTransactionModalElement.addEventListener('hidden.bs.modal', function () {
+            pendingDeleteButton = null;
+        });
+
+        confirmDeleteTransactionButton.addEventListener('click', function () {
+            if (!pendingDeleteButton) {
+                showToast('Error', 'No fue posible identificar la transacción que deseas eliminar.', 'danger');
+                return;
+            }
+
+            const deleteButton = pendingDeleteButton;
+            pendingDeleteButton = null;
+            window.bootstrap.Modal.getOrCreateInstance(deleteTransactionModalElement).hide();
+            void deleteTransaction(deleteButton);
+        });
+    }
 
     const validateAmount = function () {
         const normalizedValue = amountHiddenInput.value;

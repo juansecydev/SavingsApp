@@ -21,6 +21,7 @@ use App\Application\Actions\Account\ViewAccountDetailAction;
 use App\Application\Actions\Account\DeleteAccountAction;
 use App\Application\Actions\Account\GetAccountDataAction;
 use App\Application\Actions\Account\AccountTransactionCreateAction;
+use App\Application\Actions\Account\AccountTransactionDeleteAction;
 use Psr\Http\Message\ResponseInterface as Response;
 use Psr\Http\Message\ServerRequestInterface as Request;
 use Slim\App;
@@ -49,12 +50,16 @@ return function (App $app) {
         $group->get('/accounts/{id}', ViewAccountDetailAction::class)->setName('account.detail');
         $group->delete('/accounts/{id}', DeleteAccountAction::class)->setName('account.delete');
         $group->post('/accounts/{id}', DeleteAccountAction::class)->setName('account.delete.form');
-        
+
         $group->group('/api/v1', function (Group $apiGroup) {
             $apiGroup->get('/account/data/{id}', GetAccountDataAction::class)
                 ->setName('account.data');
             $apiGroup->post('/account/transaction/create', AccountTransactionCreateAction::class)
                 ->setName('account.transaction.create');
+            $apiGroup->delete(
+                '/account/{accountId}/transaction/{transactionId}',
+                AccountTransactionDeleteAction::class,
+            )->setName('account.transaction.delete');
             $apiGroup->post('/profile-picture/process', ProcessProfilePictureAction::class)
                 ->add(ProfilePictureProcessMiddleware::class)
                 ->setName('profile-picture.process');
